@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { fetchTopicAiExplanation } from '../services/aiService';
+import React, { useState, useRef, useEffect } from 'react';
+import { fetchTopicAiExplanation, hasCustomApiKey } from '../services/aiService';
 import { 
   Sparkles, 
   ChevronDown, 
@@ -27,7 +27,8 @@ export default function GranularSyllabusCard({
   subject,
   unitTitle,
   onSpeak,
-  onChime
+  onChime,
+  onOpenAiSettings
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +37,23 @@ export default function GranularSyllabusCard({
   const [promptInput, setPromptInput] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [promptHistory, setPromptHistory] = useState([]);
+  const [hasApiKey, setHasApiKey] = useState(() => hasCustomApiKey());
+  const [keyNotice, setKeyNotice] = useState(false);
+
+  const cardRef = useRef(null);
+  const customSectionRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyChange = () => {
+      const active = hasCustomApiKey();
+      setHasApiKey(active);
+      if (active) {
+        setKeyNotice(false);
+      }
+    };
+    window.addEventListener('study4xm_apikey_changed', handleKeyChange);
+    return () => window.removeEventListener('study4xm_apikey_changed', handleKeyChange);
+  }, []);
 
   // Expand and automatically trigger AI explanation if not yet fetched
   const handleToggleExpand = async () => {
@@ -68,6 +86,25 @@ export default function GranularSyllabusCard({
       }
 
       if (onChime) onChime('success');
+
+      // Proactive Focus & Scroll Management:
+      // Ensure user's attention is immediately and smoothly drawn to newly generated output
+      setTimeout(() => {
+        if (customPrompt && customSectionRef.current) {
+          customSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          try {
+            customSectionRef.current.focus({ preventScroll: true });
+          } catch {
+            // ignore
+          }
+          customSectionRef.current.classList.add('ai-newly-generated-pulse');
+          setTimeout(() => {
+            customSectionRef.current?.classList.remove('ai-newly-generated-pulse');
+          }, 2600);
+        } else if (cardRef.current) {
+          cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 140);
     } catch (err) {
       console.error("Failed to load AI explanation:", err);
     } finally {
@@ -79,8 +116,16 @@ export default function GranularSyllabusCard({
     if (e) e.preventDefault();
     if (!promptInput.trim() || isLoading) return;
 
+    if (!hasApiKey) {
+      setKeyNotice(true);
+      if (onOpenAiSettings) onOpenAiSettings();
+      if (onChime) onChime('warn');
+      return;
+    }
+
     const userPrompt = promptInput.trim();
     setPromptInput('');
+    setKeyNotice(false);
     loadExplanation(userPrompt);
   };
 
@@ -456,8 +501,16 @@ export default function GranularSyllabusCard({
       );
     };
 
+    const isCustom = sec.type === 'custom_prompt';
     return (
-      <div key={idx} className={`ai-section-box type-${sec.type}`}>
+      <div 
+        key={idx} 
+        ref={isCustom ? customSectionRef : undefined}
+        tabIndex={isCustom ? -1 : undefined}
+        id={isCustom ? `custom-analysis-${subtopic.id}` : undefined}
+        className={`ai-section-box type-${sec.type} ${isCustom ? 'ai-custom-analysis-box' : ''}`}
+        style={isCustom ? { outline: 'none' } : undefined}
+      >
         <div className="ai-section-header">
           <h4 className="ai-section-header-title">
             {icon}
@@ -480,6 +533,7 @@ export default function GranularSyllabusCard({
 
   return (
     <div 
+      ref={cardRef}
       className={`granular-card ${isExpanded ? 'expanded' : ''}`}
       style={{
         background: 'var(--page-bg)',
@@ -609,21 +663,45 @@ export default function GranularSyllabusCard({
                 flexWrap: 'wrap',
                 gap: '8px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ 
                     fontSize: '0.72rem', 
                     fontWeight: 700, 
-                    color: apiSource === 'gemini-live-api' ? '#059669' : 'var(--rose-700)',
-                    background: apiSource === 'gemini-live-api' ? '#d1fae5' : 'var(--rose-100)',
+                    color: apiSource === 'gemini-live-api' ? '#059669' : '#0369a1',
+                    background: apiSource === 'gemini-live-api' ? '#d1fae5' : '#e0f2fe',
+                    border: apiSource === 'gemini-live-api' ? '1px solid #a7f3d0' : '1px solid #bae6fd',
                     padding: '2px 8px',
                     borderRadius: 'var(--radius-full)',
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px'
                   }}>
                     <Sparkles size={11} />
-                    {apiSource === 'gemini-live-api' ? "Google Gemini Live AI" : "স্মার্ট একাডেমিক ইঞ্জিন"}
+                    {apiSource === 'gemini-live-api' ? "Google Gemini Live AI (সক্রিয়)" : "এনসিটিবি সিলেবাস নোটস (অফলাইন)"}
                   </span>
+
+                  {apiSource !== 'gemini-live-api' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onOpenAiSettings) onOpenAiSettings();
+                      }}
+                      className="btn btn-secondary btn-sm"
+                      style={{ 
+                        padding: '2px 8px', 
+                        fontSize: '0.72rem', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '4px',
+                        borderRadius: 'var(--radius-full)'
+                      }}
+                      title="লাইভ Gemini Cloud AI সক্রিয় করতে API Key যুক্ত করুন"
+                    >
+                      <KeyRound size={11} color="var(--rose-700)" />
+                      <span>ফ্রি লাইভ AI চালু করুন</span>
+                    </button>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '6px' }}>
@@ -707,6 +785,77 @@ export default function GranularSyllabusCard({
                   </button>
                 </div>
 
+                {/* INLINE API KEY REQUIRED BANNER FOR CUSTOM PROMPTS */}
+                {keyNotice && !hasApiKey && (
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '10px 14px',
+                    marginBottom: '10px',
+                    fontSize: '0.82rem',
+                    color: '#b91c1c',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+                      <span>
+                        <strong>API Key আবশ্যক:</strong> ফলব্যাক টেমপ্লেটের ভুল উত্তর এড়াতে, কাস্টম প্রশ্নের শতভাগ সঠিক লাইভ উত্তরের জন্য Gemini API Key দিন।
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onOpenAiSettings && onOpenAiSettings()}
+                      className="btn btn-primary btn-sm"
+                      style={{ fontSize: '0.74rem', padding: '4px 10px', whiteSpace: 'nowrap', borderRadius: 'var(--radius-sm)' }}
+                    >
+                      কী যোগ করুন
+                    </button>
+                  </div>
+                )}
+
+                {!hasApiKey && !keyNotice && (
+                  <div style={{
+                    background: 'rgba(225, 29, 72, 0.05)',
+                    border: '1px dashed var(--rose-300)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '8px 12px',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    fontSize: '0.78rem',
+                    color: 'var(--text-body)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={13} color="var(--rose-700)" style={{ flexShrink: 0 }} />
+                      <span>
+                        যেকোনো নিজস্ব প্রশ্নের শতভাগ নির্ভুল উত্তরের জন্য <strong>Gemini API Key</strong> সেট করুন (সম্পূর্ণ ফ্রি)।
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onOpenAiSettings && onOpenAiSettings()}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--rose-700)',
+                        fontWeight: 800,
+                        fontSize: '0.76rem',
+                        cursor: 'pointer',
+                        padding: '2px 6px',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      সেটআপ করুন →
+                    </button>
+                  </div>
+                )}
+
                 {/* CUSTOM PROMPT INPUT BAR */}
                 <form 
                   onSubmit={handleCustomPromptSubmit}
@@ -717,14 +866,18 @@ export default function GranularSyllabusCard({
                     background: 'var(--rose-50)', 
                     border: '1px solid var(--rose-300)',
                     padding: '6px 8px',
-                    borderRadius: 'var(--radius-md)'
+                    borderRadius: 'var(--radius-md)',
+                    marginBottom: '22px'
                   }}
                 >
                   <input
                     type="text"
                     value={promptInput}
                     onChange={(e) => setPromptInput(e.target.value)}
-                    placeholder="এই টপিকে আপনার মতো করে উত্তর পরিবর্তন করতে প্রম্পট লিখুন (যেমন: 'আরেকটি উদাহরণ দিন')..."
+                    placeholder={hasApiKey 
+                      ? "এই টপিকে আপনার মতো করে উত্তর পরিবর্তন করতে প্রম্পট লিখুন (যেমন: 'আরেকটি উদাহরণ দিন')..."
+                      : "কাস্টম প্রশ্নের লাইভ নির্ভুল উত্তরের জন্য আগে Gemini API Key সেট করুন (সম্পূর্ণ ফ্রি)..."
+                    }
                     disabled={isLoading}
                     style={{
                       flex: 1,
@@ -741,9 +894,10 @@ export default function GranularSyllabusCard({
                     className="btn btn-primary btn-sm"
                     disabled={!promptInput.trim() || isLoading}
                     style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    title={hasApiKey ? "প্রম্পট পাঠান" : "কাস্টম প্রশ্নের জন্য API Key দিন"}
                   >
-                    <span>পাঠান</span>
-                    <Send size={13} />
+                    <span>{hasApiKey ? "পাঠান" : "কী সেট করুন"}</span>
+                    {hasApiKey ? <Send size={13} /> : <KeyRound size={13} />}
                   </button>
                 </form>
               </div>

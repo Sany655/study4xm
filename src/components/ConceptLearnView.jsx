@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { ICT_SYLLABUS } from '../data/ictData';
 import { ECONOMICS_SYLLABUS } from '../data/economicsData';
 import { Volume2, Star, CheckCircle, BookOpen, Lightbulb, ArrowLeft } from 'lucide-react';
+import FormulasCard from './FormulasCard';
+import VisualDiagramViewer from './interactive/VisualDiagramViewer';
+import QuestionBankSection from './QuestionBankSection';
+import ReferenceBooksBadge from './ReferenceBooksBadge';
 
 export default function ConceptLearnView({
   selectedTopicId,
@@ -21,10 +25,11 @@ export default function ConceptLearnView({
   const [recallInput, setRecallInput] = useState('');
   const [showRecallResult, setShowRecallResult] = useState(false);
 
-  // Find concept
+  // Find concept & parent unit
   let concept = null;
   let subject = "ICT";
   let unitTitle = "";
+  let parentUnit = null;
 
   ICT_SYLLABUS.forEach(u => {
     const found = u.topics.find(t => t.id === selectedTopicId);
@@ -32,6 +37,7 @@ export default function ConceptLearnView({
       concept = found;
       subject = "ICT";
       unitTitle = u.unitTitle;
+      parentUnit = u;
     }
   });
 
@@ -42,6 +48,7 @@ export default function ConceptLearnView({
         concept = found;
         subject = "Economics";
         unitTitle = t.title;
+        parentUnit = t;
       }
     });
   }
@@ -49,7 +56,13 @@ export default function ConceptLearnView({
   if (!concept) {
     concept = ICT_SYLLABUS[0].topics[0];
     unitTitle = ICT_SYLLABUS[0].unitTitle;
+    parentUnit = ICT_SYLLABUS[0];
   }
+
+  const formulas = concept.formulas || parentUnit?.formulas;
+  const diagram = concept.diagram || parentUnit?.diagram;
+  const questionBank = concept.questionBank || parentUnit?.questionBank;
+  const references = concept.references || parentUnit?.references;
 
   const isCompleted = completedTopics.includes(concept.id);
   const isBookmarked = bookmarkedTopics.includes(concept.id);
@@ -127,6 +140,11 @@ export default function ConceptLearnView({
         </div>
       ) : (
         <>
+          {/* Official Reference Books Badge */}
+          {references && references.length > 0 && (
+            <ReferenceBooksBadge references={references} />
+          )}
+
           {/* LEVEL 1: Understand It */}
           <div className="concept-block">
             <span className="block-tag tag-simple">🌱 LEVEL 1: UNDERSTAND IT (INTUITIVE ANALOGY)</span>
@@ -174,6 +192,16 @@ export default function ConceptLearnView({
             </div>
           </div>
 
+          {/* Visual Diagram & Curve Viewer */}
+          {diagram && (
+            <VisualDiagramViewer diagram={diagram} onChime={onChime} />
+          )}
+
+          {/* Mathematical Formulas & Calculation Models */}
+          {formulas && formulas.length > 0 && (
+            <FormulasCard formulas={formulas} />
+          )}
+
           {/* LEVEL 4: Write It */}
           <div className="concept-block">
             <span className="block-tag tag-exam">📝 LEVEL 4: WRITE IT (EXAM-READY ANSWER TEMPLATES)</span>
@@ -214,6 +242,11 @@ export default function ConceptLearnView({
               {concept.commonMistakes || "Students frequently confuse technical terminology without providing formal definitions."}
             </p>
           </div>
+
+          {/* National University Question Bank (Part A, B, C) */}
+          {questionBank && (
+            <QuestionBankSection questionBank={questionBank} unitTitle={unitTitle} />
+          )}
         </>
       )}
 

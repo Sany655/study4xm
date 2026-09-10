@@ -8,13 +8,24 @@ export default function AiSettingsModal({ isOpen, onClose, onChime }) {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setApiKeyInput(getGeminiApiKey());
+      setSaveStatus(null);
+      setTestResult(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSave = () => {
     setGeminiApiKey(apiKeyInput);
-    setSaveStatus('সংরক্ষিত হয়েছে!');
+    setSaveStatus('সংরক্ষিত হয়েছে! লাইভ AI সফলভাবে সক্রিয় করা হয়েছে।');
     if (onChime) onChime('success');
-    setTimeout(() => setSaveStatus(null), 2500);
+    setTimeout(() => {
+      setSaveStatus(null);
+      onClose();
+    }, 1100);
   };
 
   const handleClear = () => {
@@ -23,7 +34,7 @@ export default function AiSettingsModal({ isOpen, onClose, onChime }) {
     setTestResult(null);
     setSaveStatus('কী মুছে ফেলা হয়েছে। এখন অফলাইন মোড চলবে।');
     if (onChime) onChime('click');
-    setTimeout(() => setSaveStatus(null), 2500);
+    setTimeout(() => setSaveStatus(null), 2000);
   };
 
   const handleTestConnection = async () => {
@@ -212,9 +223,11 @@ export default function AiSettingsModal({ isOpen, onClose, onChime }) {
           fontSize: '0.78rem',
           color: 'var(--text-muted)'
         }}>
-          <strong>💡 বিনামূল্যে এপিআই কী পাওয়ার উপায়:</strong>
-          <p style={{ margin: '4px 0 8px' }}>
-            গুগল এআই স্টুডিও থেকে সম্পূর্ণ বিনামূল্যে ব্যক্তিগত এপিআই কী তৈরি করতে পারেন:
+          <strong>💡 বিনামূল্যে এপিআই কী পাওয়ার ৩টি সহজ ধাপ:</strong>
+          <p style={{ margin: '4px 0 8px', lineHeight: 1.6 }}>
+            ১. নিচের লিঙ্কে ক্লিক করে গুগল একাউন্ট দিয়ে সাইন ইন করুন।<br/>
+            ২. <strong>Create API Key</strong> বাটনে ক্লিক করে একটি কি তৈরি করে কপি করুন।<br/>
+            ৩. উপরের ঘরে পেস্ট করে <strong>সংরক্ষণ করুন</strong>-এ চাপুন।
           </p>
           <a 
             href="https://aistudio.google.com/app/apikey" 
@@ -229,11 +242,11 @@ export default function AiSettingsModal({ isOpen, onClose, onChime }) {
               gap: '4px' 
             }}
           >
-            <span>Google AI Studio - Get API Key</span>
+            <span>Google AI Studio - Get Free Gemini API Key</span>
             <ExternalLink size={12} />
           </a>
-          <div style={{ marginTop: '8px', color: 'var(--text-body)' }}>
-            <em>* নোট: এপিআই কী প্রদান না করলেও অন্তর্নির্মিত অফলাইন স্মার্ট অ্যাকাডেমিক ইঞ্জিন স্বয়ংক্রিয়ভাবে কাজ চালিয়ে যাবে।</em>
+          <div style={{ marginTop: '10px', color: 'var(--text-body)', lineHeight: 1.5 }}>
+            <em>* পাঠ্যবই ও সিলেবাসের ৬টি মৌলিক বিভাগ অফলাইনেই পড়তে পারবেন। তবে আপনার নিজস্ব যেকোনো কাস্টম প্রশ্ন বা প্রম্পটের রিয়েল-টাইম নির্ভুল উত্তরের জন্য Gemini API Key আবশ্যক।</em>
           </div>
         </div>
       </div>

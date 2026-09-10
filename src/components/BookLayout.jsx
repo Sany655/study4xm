@@ -925,6 +925,7 @@ export default function BookLayout({ appState, audio }) {
             recallRecord={state.recallHistory[activePageObj.topic.id]}
             onSpeak={speak}
             onChime={playChime}
+            onOpenAiSettings={() => setIsAiSettingsOpen(true)}
           />
         )}
 

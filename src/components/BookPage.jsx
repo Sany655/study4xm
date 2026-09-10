@@ -7,6 +7,12 @@ import CyberScenario from './interactive/CyberScenario';
 import SupplyDemandCanvas from './interactive/SupplyDemandCanvas';
 import { GRANULAR_ICT_SYLLABUS, GRANULAR_ECONOMICS_SYLLABUS } from '../data/granularSyllabusData';
 import GranularSyllabusCard from './GranularSyllabusCard';
+import { ICT_SYLLABUS } from '../data/ictData';
+import { ECONOMICS_SYLLABUS } from '../data/economicsData';
+import FormulasCard from './FormulasCard';
+import VisualDiagramViewer from './interactive/VisualDiagramViewer';
+import QuestionBankSection from './QuestionBankSection';
+import ReferenceBooksBadge from './ReferenceBooksBadge';
 
 export default function BookPage({
   page,
@@ -19,7 +25,8 @@ export default function BookPage({
   quizRecord,
   recallRecord,
   onSpeak,
-  onChime
+  onChime,
+  onOpenAiSettings
 }) {
   const [simplerMode, setSimplerMode] = useState(false);
   const [activeMarkTab, setActiveMarkTab] = useState('two');
@@ -28,6 +35,18 @@ export default function BookPage({
 
   const topic = page.topic;
   if (!topic) return null;
+
+  // Resolve parent unit for enriched curriculum elements
+  const parentUnit = page.parentUnit || (
+    page.subject === 'ICT' 
+      ? ICT_SYLLABUS.find(u => u.unitId === page.unitId)
+      : ECONOMICS_SYLLABUS.find(t => t.topicId === page.topicId)
+  );
+
+  const formulas = topic.formulas || parentUnit?.formulas;
+  const diagram = topic.diagram || parentUnit?.diagram;
+  const questionBank = topic.questionBank || parentUnit?.questionBank;
+  const references = topic.references || parentUnit?.references;
 
   // Resolve matching granular subtopics for this unit/chapter
   let granularSubtopics = [];
@@ -145,6 +164,13 @@ export default function BookPage({
         </div>
       ) : (
         <>
+          {/* Official Reference Books Badge */}
+          {references && references.length > 0 && (
+            <div style={{ marginBottom: '18px' }}>
+              <ReferenceBooksBadge references={references} />
+            </div>
+          )}
+
           {/* Level 1: Understand It */}
           <div className="book-section">
             <span className="book-section-label">লেভেল ১: প্রাথমিক ধারণা ও মূল উপলব্ধি</span>
@@ -185,6 +211,20 @@ export default function BookPage({
               </p>
             </div>
           </div>
+
+          {/* Visual Diagram & Curve Viewer */}
+          {diagram && (
+            <div style={{ marginBottom: '24px' }}>
+              <VisualDiagramViewer diagram={diagram} onChime={onChime} />
+            </div>
+          )}
+
+          {/* Mathematical Formulas & Calculation Models */}
+          {formulas && formulas.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <FormulasCard formulas={formulas} />
+            </div>
+          )}
 
           {/* In-Book Interactive Laboratories (Specific to Units/Topics) */}
           {topic.id === 'ict-u4-t1' && (
@@ -269,6 +309,13 @@ export default function BookPage({
               ) : "আদর্শ উত্তর লোড করা হচ্ছে..."}
             </div>
           </div>
+
+          {/* National University Question Bank (Part A, B, C) */}
+          {questionBank && (
+            <div style={{ marginBottom: '28px' }}>
+              <QuestionBankSection questionBank={questionBank} unitTitle={page.chapterTitle} />
+            </div>
+          )}
         </>
       )}
 
@@ -317,6 +364,7 @@ export default function BookPage({
                 unitTitle={page.chapterTitle}
                 onSpeak={onSpeak}
                 onChime={onChime}
+                onOpenAiSettings={onOpenAiSettings}
               />
             ))}
           </div>
