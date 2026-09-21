@@ -19,6 +19,37 @@ export const COURSE_SYLLABUS_MAP = {
   'ict': { syllabus: ICT_SYLLABUS, name: 'তথ্য ও যোগাযোগ প্রযুক্তি ও ল্যাব', code: '216601' }
 };
 
+export function generatePlaceholderSyllabus(courseMeta) {
+  const totalChapters = courseMeta.totalChapters || 6;
+  const chapters = courseMeta.chapters || Array.from({ length: totalChapters }).map((_, i) => ({
+    id: i + 1,
+    titleBn: `অধ্যায় ${i + 1}`,
+    titleEn: `Chapter ${i + 1}`
+  }));
+
+  return chapters.map((chap, i) => ({
+    unitId: i + 1,
+    unitTitle: chap.titleBn || `অধ্যায় ${i + 1}`,
+    priority: 5,
+    topics: [
+      {
+        id: `${courseMeta.id}-c${i+1}-t1`,
+        title: (chap.titleBn || `অধ্যায় ${i + 1}`) + " - প্রারম্ভিক আলোচনা",
+        type: "theory",
+        description: "এই অংশে মৌলিক ধারণা নিয়ে আলোচনা করা হয়েছে। বিস্তারিত কন্টেন্ট পরবর্তীতে যুক্ত করা হবে।",
+        priority: 5
+      },
+      {
+        id: `${courseMeta.id}-c${i+1}-t2`,
+        title: (chap.titleBn || `অধ্যায় ${i + 1}`) + " - বিস্তারিত বিশ্লেষণ",
+        type: "theory",
+        description: "এই অংশে বিস্তারিত তাত্ত্বিক বিশ্লেষণ করা হয়েছে। বিস্তারিত কন্টেন্ট পরবর্তীতে যুক্ত করা হবে।",
+        priority: 5
+      }
+    ]
+  }));
+}
+
 export function buildBookPagesForCourse(courseId = 'intro-sociology', yearId = 1) {
   const pages = [];
   const courseMeta = getCourseConfig(yearId, courseId) || {
@@ -29,7 +60,7 @@ export function buildBookPagesForCourse(courseId = 'intro-sociology', yearId = 1
   };
 
   const yearMeta = getYearConfig(yearId);
-  const syllabusData = COURSE_SYLLABUS_MAP[courseId]?.syllabus || INTRO_SOCIOLOGY_SYLLABUS;
+  const syllabusData = COURSE_SYLLABUS_MAP[courseId]?.syllabus || generatePlaceholderSyllabus(courseMeta);
 
   // Page 1: Cover
   pages.push({
