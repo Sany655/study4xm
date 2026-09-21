@@ -9,8 +9,10 @@ import DifferenceTablesView from './DifferenceTablesView';
 import FlashcardsView from './FlashcardsView';
 import WritingTrainerView from './WritingTrainerView';
 import ExamSimulatorView from './ExamSimulatorView';
+import PremiumExamSimulatorView from './PremiumExamSimulatorView';
 import MistakeNotebookView from './MistakeNotebookView';
 import SpacedRevisionView from './SpacedRevisionView';
+import ReferAndEarnView from './ReferAndEarnView';
 
 import GuidedTour from './GuidedTour';
 import AiSettingsModal from './AiSettingsModal';
@@ -939,21 +941,14 @@ export default function BookLayout({ appState, audio }) {
           </div>
         )}
 
-        {/* APPENDIX D: TIMED EXAM BOOKLET */}
+        {/* APPENDIX D: TIMED EXAM BOOKLET (PREMIUM FEATURE) */}
         {activePageObj.type === 'exam' && (
           <div className="book-page-shell">
             <div className="page-running-head">
-              <span className="page-chapter-badge">পরিশिष्ट ঘ</span>
+              <span className="page-chapter-badge">পরিশिष्ट ঘ (Premium)</span>
               <span>টাইমারযুক্ত বোর্ড পরীক্ষা হল • ১০০/১০০ প্রস্তুতি মূল্যায়ন</span>
             </div>
-            <ExamSimulatorView
-              is100Mode={false}
-              onAddXP={addXP}
-              onLogMistake={logMistake}
-              onChime={playChime}
-              onNavigate={(v) => {}}
-              stats={metrics}
-            />
+            <PremiumExamSimulatorView appState={appState} />
           </div>
         )}
 
@@ -973,6 +968,11 @@ export default function BookLayout({ appState, audio }) {
               <SpacedRevisionView />
             </div>
           </div>
+        )}
+
+        {/* APPENDIX F: REFER & EARN */}
+        {activePageObj.type === 'refer' && (
+          <ReferAndEarnView />
         )}
           </main>
         </div>

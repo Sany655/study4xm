@@ -154,6 +154,9 @@ export default function AiSettingsModal({ isOpen, onClose, onChime }) {
               boxSizing: 'border-box'
             }}
           />
+          <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            Don't have one? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--rose-600)', textDecoration: 'underline' }}>Get a FREE Gemini API Key here</a>
+          </div>
         </div>
 
         {/* Action Buttons */}

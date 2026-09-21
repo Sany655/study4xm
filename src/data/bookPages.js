@@ -153,9 +153,20 @@ export function buildBookPagesForCourse(courseId = 'intro-sociology', yearId = 1
     courseId: courseId
   });
 
+  pages.push({
+    pageNumber: pageCounter++,
+    type: 'refer',
+    volume: 'পরিশিষ্ট চ',
+    title: 'Refer & Earn',
+    subtitle: 'প্রিমিয়াম বৈশিষ্ট্য আনলক করতে বন্ধুদের আমন্ত্রণ জানান',
+    section: 'প্রিমিয়াম আনলক',
+    courseId: courseId
+  });
+
   return pages;
 }
 
 // Default export for initial render (1st Year - Introduction to Sociology)
 export const BOOK_PAGES = buildBookPagesForCourse('intro-sociology', 1);
 export const TOTAL_BOOK_PAGES = BOOK_PAGES.length;
+

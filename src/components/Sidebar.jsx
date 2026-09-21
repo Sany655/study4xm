@@ -12,7 +12,9 @@ import {
   Award, 
   BookMarked, 
   Repeat, 
-  Settings 
+  Settings,
+  Crown,
+  Users
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -150,6 +152,24 @@ export default function Sidebar({
         >
           <Settings size={18} className="nav-icon" />
           <span>Settings</span>
+        </button>
+
+        <div className="nav-section-title" style={{ color: 'var(--rose-700)', marginTop: '20px' }}>Premium Access</div>
+        <button 
+          className={`nav-item ${activeView === 'refer-earn' ? 'active' : ''}`}
+          onClick={() => handleNav('refer-earn')}
+          style={{ background: activeView === 'refer-earn' ? 'var(--rose-100)' : 'transparent', color: 'var(--rose-800)' }}
+        >
+          <Users size={18} className="nav-icon" color="var(--rose-700)" />
+          <span style={{ fontWeight: 600 }}>Refer & Earn</span>
+        </button>
+        <button 
+          className={`nav-item ${activeView === 'premium-exam' ? 'active' : ''}`}
+          onClick={() => handleNav('premium-exam')}
+          style={{ background: activeView === 'premium-exam' ? '#fef3c7' : 'transparent', color: '#b45309' }}
+        >
+          <Crown size={18} className="nav-icon" color="#d97706" />
+          <span style={{ fontWeight: 600 }}>Premium AI Exam</span>
         </button>
       </nav>
 

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import BookLayout from './components/BookLayout';
 import { useAppState } from './hooks/useAppState';
 import { useAudioTTS } from './hooks/useAudioTTS';
+import { AuthProvider } from './contexts/AuthContext';
 
 export default function App() {
   const appState = useAppState();
@@ -13,8 +14,10 @@ export default function App() {
   }, [appState.state.theme]);
 
   return (
-    <div className="book-app-root">
-      <BookLayout appState={appState} audio={audio} />
-    </div>
+    <AuthProvider>
+      <div className="book-app-root">
+        <BookLayout appState={appState} audio={audio} />
+      </div>
+    </AuthProvider>
   );
 }
