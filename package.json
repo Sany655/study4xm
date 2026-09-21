@@ -7,10 +7,15 @@
     "dev": "vite --port 5173 --host 127.0.0.1",
     "build": "vite build && firebase deploy --only hosting:study4xm --project portfolio-sany",
     "build:local": "vite build",
+    "cap:sync": "cap sync android",
+    "cap:build": "npm run build:local && cap sync android",
     "deploy": "npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

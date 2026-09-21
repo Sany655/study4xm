@@ -15,6 +15,8 @@ const INITIAL_CLEAN_STATE = {
   streak: 1,
   theme: 'light',
   currentPage: 1, // Start on Cover / Page 1
+  currentYear: 1, // 1st Year by default
+  currentCourse: 'intro-sociology', // Default to core Introduction to Sociology
   completedTopics: [], // Empty initially - zero fake progress!
   bookmarkedTopics: [],
   quizHistory: {}, // { [qId]: { attempted: true, correct: boolean, choice: number } }
@@ -55,6 +57,15 @@ export function useAppState() {
 
   const setCurrentPage = useCallback((pageNum) => {
     setState(prev => ({ ...prev, currentPage: pageNum }));
+  }, []);
+
+  const selectCourse = useCallback((yearId, courseId) => {
+    setState(prev => ({
+      ...prev,
+      currentYear: Number(yearId),
+      currentCourse: courseId,
+      currentPage: 1 // Start at cover of newly selected course
+    }));
   }, []);
 
   const toggleTopicComplete = useCallback((topicId) => {
@@ -262,6 +273,7 @@ export function useAppState() {
     saveMarginNote,
     toggleTheme,
     resetAllProgress,
+    selectCourse,
     metrics: {
       completedICTCount,
       totalICTTopics: TOTAL_ICT_TOPICS,

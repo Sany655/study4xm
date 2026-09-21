@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { BOOK_PAGES } from '../data/bookPages';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { buildBookPagesForCourse } from '../data/bookPages';
+import { getCourseConfig, getYearConfig } from '../data/curriculumRegistry';
+import YearCourseSelector from './YearCourseSelector';
 import BookPage from './BookPage';
 import TableOfContents from './TableOfContents';
 import DifferenceTablesView from './DifferenceTablesView';
@@ -25,13 +27,14 @@ import {
   Award, 
   CheckCircle,
   Clock,
-  Sparkles,
-  List,
-  AlertCircle,
-  Home,
-  Compass,
-  HelpCircle,
-  X
+  Sparkles, 
+  List, 
+  AlertCircle, 
+  Home, 
+  Compass, 
+  HelpCircle, 
+  GraduationCap,
+  X 
 } from 'lucide-react';
 
 export default function BookLayout({ appState, audio }) {
@@ -47,21 +50,39 @@ export default function BookLayout({ appState, audio }) {
     updateFlashcardSRS,
     toggleTheme,
     resetAllProgress,
-    addXP
+    addXP,
+    selectCourse
   } = appState;
 
   const { playChime, speak, stopSpeaking } = audio;
+
+  const currentCourseId = state.currentCourse || 'intro-sociology';
+  const currentYearId = state.currentYear || 1;
+  const currentCourseMeta = getCourseConfig(currentYearId, currentCourseId);
+  const currentYearMeta = getYearConfig(currentYearId);
+
+  const bookPages = useMemo(() => {
+    return buildBookPagesForCourse(currentCourseId, currentYearId);
+  }, [currentCourseId, currentYearId]);
+
+  const [isYearModalOpen, setIsYearModalOpen] = useState(false);
 
   // Persist current page in localStorage
   const [currentPage, setCurrentPage] = useState(() => {
     try {
       const saved = localStorage.getItem('TISHA_BOOK_CURRENT_PAGE');
       const num = parseInt(saved, 10);
-      return !isNaN(num) && num >= 1 && num <= BOOK_PAGES.length ? num : 1;
+      return !isNaN(num) && num >= 1 && num <= bookPages.length ? num : 1;
     } catch {
       return 1;
     }
   });
+
+  const handleSelectCourse = (yearId, courseId) => {
+    selectCourse(yearId, courseId);
+    setCurrentPage(1);
+    setIsYearModalOpen(false);
+  };
 
   const [isTocDrawerOpen, setIsTocDrawerOpen] = useState(false);
   const [showBookmarksModal, setShowBookmarksModal] = useState(false);
@@ -124,19 +145,19 @@ export default function BookLayout({ appState, audio }) {
 
   // Page turn function
   const goToPage = useCallback((pageNum) => {
-    if (pageNum < 1 || pageNum > BOOK_PAGES.length) return;
+    if (pageNum < 1 || pageNum > bookPages.length) return;
     setCurrentPage(pageNum);
     if (!isAudioMuted && playChime) {
       playChime('click');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [isAudioMuted, playChime]);
+  }, [isAudioMuted, playChime, bookPages.length]);
 
   const nextPage = useCallback(() => {
-    if (currentPage < BOOK_PAGES.length) {
+    if (currentPage < bookPages.length) {
       goToPage(currentPage + 1);
     }
-  }, [currentPage, goToPage]);
+  }, [currentPage, goToPage, bookPages.length]);
 
   const prevPage = useCallback(() => {
     if (currentPage > 1) {
@@ -144,11 +165,14 @@ export default function BookLayout({ appState, audio }) {
     }
   }, [currentPage, goToPage]);
 
-  // Keyboard navigation: ArrowLeft / ArrowRight
+  // Keyboard navigation (Left/Right arrow keys)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't trigger if typing in input or textarea
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      // Don't flip page if user is currently typing in an input, textarea, or notes
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+        return;
+      }
 
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
         e.preventDefault();
@@ -156,53 +180,43 @@ export default function BookLayout({ appState, audio }) {
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
         e.preventDefault();
         prevPage();
-      } else if (e.key === 'Escape') {
-        setIsTocDrawerOpen(false);
-        setShowBookmarksModal(false);
-        setShowResetConfirm(false);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToPage(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToPage(bookPages.length);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextPage, prevPage]);
+  }, [nextPage, prevPage, goToPage, bookPages.length]);
 
   // =========================================================================
-  // TOUCH GESTURES (Mobile & Tablet Drag)
+  // TOUCH GESTURES (Mobile / Tablet Swipe)
   // =========================================================================
   const handleTouchStart = (e) => {
-    // Ignore interactive elements
-    const target = e.target;
-    if (
-      ['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'SELECT'].includes(target.tagName) ||
-      target.closest('button') ||
-      target.closest('a') ||
-      target.closest('.diff-table-container') ||
-      target.closest('canvas')
-    ) {
-      return;
-    }
-
     const touch = e.touches[0];
     touchStartRef.current = {
       x: touch.clientX,
       y: touch.clientY,
       time: Date.now(),
-      isHorizontal: null
+      isHorizontal: null // undetermined yet
     };
     setIsDragging(true);
     setIsPageAnimating(false);
   };
 
   const handleTouchMove = (e) => {
-    if (!isDragging) return;
+    if (!touchStartRef.current) return;
     const touch = e.touches[0];
     const diffX = touch.clientX - touchStartRef.current.x;
     const diffY = touch.clientY - touchStartRef.current.y;
 
-    // Detect gesture axis: don't block vertical scrolling
+    // Detect gesture direction on first significant movement
     if (touchStartRef.current.isHorizontal === null) {
-      if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
+      if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
         touchStartRef.current.isHorizontal = Math.abs(diffX) > Math.abs(diffY);
       }
     }
@@ -213,7 +227,7 @@ export default function BookLayout({ appState, audio }) {
 
     // Apply boundary resistance
     let clampedDiffX = diffX;
-    if ((currentPage === 1 && diffX > 0) || (currentPage === BOOK_PAGES.length && diffX < 0)) {
+    if ((currentPage === 1 && diffX > 0) || (currentPage === bookPages.length && diffX < 0)) {
       clampedDiffX = diffX * 0.25;
     }
 
@@ -230,7 +244,7 @@ export default function BookLayout({ appState, audio }) {
       const threshold = 55;
 
       if (dragOffset < -threshold || velocity < -0.35) {
-        if (currentPage < BOOK_PAGES.length) {
+        if (currentPage < bookPages.length) {
           setIsPageAnimating(true);
           setDragOffset(-window.innerWidth * 0.4);
           setTimeout(() => {
@@ -296,7 +310,7 @@ export default function BookLayout({ appState, audio }) {
     const diffX = e.clientX - mouseStartRef.current.x;
 
     let clampedDiffX = diffX;
-    if ((currentPage === 1 && diffX > 0) || (currentPage === BOOK_PAGES.length && diffX < 0)) {
+    if ((currentPage === 1 && diffX > 0) || (currentPage === bookPages.length && diffX < 0)) {
       clampedDiffX = diffX * 0.25;
     }
 
@@ -309,7 +323,7 @@ export default function BookLayout({ appState, audio }) {
     setIsDragging(false);
 
     const threshold = 65;
-    if (dragOffset < -threshold && currentPage < BOOK_PAGES.length) {
+    if (dragOffset < -threshold && currentPage < bookPages.length) {
       setIsPageAnimating(true);
       setDragOffset(-280);
       setTimeout(() => {
@@ -335,14 +349,14 @@ export default function BookLayout({ appState, audio }) {
   };
 
   // Current page object
-  const activePageObj = BOOK_PAGES.find(p => p.pageNumber === currentPage) || BOOK_PAGES[0];
+  const activePageObj = bookPages.find(p => p.pageNumber === currentPage) || bookPages[0];
 
   // First pages for courses
-  const ictFirstPage = BOOK_PAGES.find(p => p.subject === 'ICT')?.pageNumber || 3;
-  const econFirstPage = BOOK_PAGES.find(p => p.subject === 'Economics')?.pageNumber || 12;
+  const ictFirstPage = bookPages.find(p => p.subject === 'ICT')?.pageNumber || 3;
+  const econFirstPage = bookPages.find(p => p.subject === 'Economics')?.pageNumber || 12;
 
   // Bookmarked pages resolution
-  const bookmarkedPagesList = BOOK_PAGES.filter(p => 
+  const bookmarkedPagesList = bookPages.filter(p => 
     p.topic && state.bookmarkedTopics.includes(p.topic.id)
   );
 
@@ -377,23 +391,16 @@ export default function BookLayout({ appState, audio }) {
             <span>সূচিপত্র</span>
           </button>
 
-          {/* Quick Course Switcher Tabs */}
-          <div id="tour-course-switcher" className="hide-on-mobile" style={{ display: 'flex', gap: '4px', marginLeft: '4px' }}>
+          {/* Quick Course Switcher Button */}
+          <div id="tour-course-switcher" style={{ display: 'flex', gap: '4px', marginLeft: '4px' }}>
             <button
-              className={`btn btn-sm ${activePageObj.subject === 'ICT' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => goToPage(ictFirstPage)}
-              title="১ম খণ্ড: তথ্য ও যোগাযোগ প্রযুক্তিতে যান"
-              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+              className="btn btn-sm btn-primary"
+              onClick={() => setIsYearModalOpen(true)}
+              title="৪ বর্ষের পাঠ্যক্রম ও কোর্স লাইব্রেরি খুলুন"
+              style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              💻 আইসিটি
-            </button>
-            <button
-              className={`btn btn-sm ${activePageObj.subject === 'Economics' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => goToPage(econFirstPage)}
-              title="২য় খণ্ড: অর্থনীতিতে যান"
-              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-            >
-              📈 অর্থনীতি
+              <GraduationCap size={14} />
+              <span>{currentYearMeta?.yearNumberBn || '১ম বর্ষ'}: {currentCourseMeta?.titleBn || 'সমাজবিজ্ঞান'}</span>
             </button>
           </div>
 
@@ -497,9 +504,9 @@ export default function BookLayout({ appState, audio }) {
 
       <button
         className="book-side-nav-btn right"
-        disabled={currentPage >= BOOK_PAGES.length}
+        disabled={currentPage >= bookPages.length}
         onClick={nextPage}
-        title="Next Page (→)"
+        title="পরবর্তী পৃষ্ঠা (→)"
         aria-label="Next Page"
       >
         <ChevronRight size={28} />
@@ -517,12 +524,12 @@ export default function BookLayout({ appState, audio }) {
         onMouseLeave={handleMouseUp}
       >
         {/* Dynamic Edge Peek Badges during Drag */}
-        {dragOffset < -28 && currentPage < BOOK_PAGES.length && (
+        {dragOffset < -28 && currentPage < bookPages.length && (
           <div 
             className="book-edge-peek book-edge-peek-right"
             style={{ opacity: Math.min(1, Math.abs(dragOffset) / 55) }}
           >
-            <span>Next Page</span>
+            <span>পরবর্তী পৃষ্ঠা</span>
             <ChevronRight size={16} />
           </div>
         )}
@@ -533,7 +540,7 @@ export default function BookLayout({ appState, audio }) {
             style={{ opacity: Math.min(1, Math.abs(dragOffset) / 55) }}
           >
             <ChevronLeft size={16} />
-            <span>Previous Page</span>
+            <span>পূর্ববর্তী পৃষ্ঠা</span>
           </div>
         )}
 
@@ -570,22 +577,22 @@ export default function BookLayout({ appState, audio }) {
                     fontSize: '0.82rem', 
                     fontWeight: 800, 
                     color: 'var(--rose-900)',
-                    letterSpacing: '0.12em',
+                    letterSpacing: '0.1em',
                     textTransform: 'uppercase',
                     marginBottom: '18px'
                   }}>
-                    বোর্ড ও সেমিস্টার টার্গেট: ১০০/১০০
+                    জাতীয় বিশ্ববিদ্যালয় • সমাজবিজ্ঞান বিভাগ (বিএসএস সম্মান)
                   </div>
 
                   <h1 style={{ 
                     fontFamily: 'Crimson Pro, Outfit, serif', 
-                    fontSize: 'clamp(2.2rem, 6vw, 3.2rem)', 
+                    fontSize: 'clamp(2.1rem, 5.5vw, 3.1rem)', 
                     fontWeight: 800, 
                     color: 'var(--text-ink)', 
                     lineHeight: 1.15, 
                     marginBottom: '10px' 
                   }}>
-                    পরীক্ষা প্রস্তুতি ও মাস্টারবুক
+                    মাস্টারবুক ও পূর্ণাঙ্গ প্রশ্নব্যাংক
                   </h1>
 
                   <div style={{ 
@@ -597,35 +604,35 @@ export default function BookLayout({ appState, audio }) {
                   }} />
 
                   <h2 style={{ 
-                    fontSize: 'clamp(1.05rem, 3.5vw, 1.3rem)', 
-                    fontWeight: 600, 
+                    fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', 
+                    fontWeight: 700, 
                     color: 'var(--rose-800)', 
-                    marginBottom: '8px' 
+                    marginBottom: '6px' 
                   }}>
-                    তথ্য ও যোগাযোগ প্রযুক্তি • অর্থনীতি ১ম ও ২য় পত্র
+                    {currentYearMeta?.yearNameBn} • {currentCourseMeta?.titleBn}
                   </h2>
 
                   <p style={{ 
-                    fontSize: '0.92rem', 
+                    fontSize: '0.9rem', 
                     color: 'var(--text-muted)', 
-                    marginBottom: '28px',
+                    marginBottom: '26px',
                     fontStyle: 'italic'
                   }}>
-                    জাতীয় শিক্ষাক্রম অনুযায়ী সম্পূর্ণ পাঠ্যবই ও প্রশ্নব্যাংক • অ্যাক্টিভ রিকল ল্যাবরেটরি
+                    {currentCourseMeta?.paperCode ? `Paper Code: ${currentCourseMeta.paperCode} • ` : ''}{currentCourseMeta?.titleEn}
                   </p>
 
-                  {/* Dynamic LocalStorage Reading Card (Starts 0% truthfully) */}
+                  {/* Dynamic Learning Progress Card */}
                   <div style={{ 
                     background: 'var(--page-bg)', 
                     border: '1px solid var(--page-border)', 
                     borderRadius: 'var(--radius-md)', 
                     padding: '20px 16px', 
-                    marginBottom: '28px',
+                    marginBottom: '24px',
                     boxShadow: '0 4px 20px rgba(136, 19, 55, 0.05)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-ink)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        ব্যক্তিগত শিখন অগ্রগতি রেকর্ড
+                        কোর্স শিখন অগ্রগতি রেকর্ড
                       </span>
                       <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--rose-700)' }}>
                         {metrics.overallProgressPct}% সম্পন্ন
@@ -642,21 +649,13 @@ export default function BookLayout({ appState, audio }) {
                       }} />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(115px, 1fr))', gap: '10px', textAlign: 'left' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px', textAlign: 'left' }}>
                       <div style={{ background: 'var(--rose-50)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--page-border)' }}>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>১ম খণ্ড: আইসিটি</div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>অধ্যায় পাঠ</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--rose-900)' }}>
-                          {metrics.ictCompletedCount} / {metrics.ictTotalTopics}
+                          {state.completedTopics.length} / {bookPages.filter(p => p.type === 'chapter').length}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--rose-700)' }}>{metrics.ictProgressPct}% সমাপ্ত</div>
-                      </div>
-
-                      <div style={{ background: 'var(--rose-50)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--page-border)' }}>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>২য় খণ্ড: অর্থনীতি</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--rose-900)' }}>
-                          {metrics.econCompletedCount} / {metrics.econTotalTopics}
-                        </div>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--rose-700)' }}>{metrics.econProgressPct}% সমাপ্ত</div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--rose-700)' }}>সম্পূর্ণ হয়েছে</div>
                       </div>
 
                       <div style={{ background: 'var(--rose-50)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--page-border)' }}>
@@ -677,80 +676,67 @@ export default function BookLayout({ appState, audio }) {
                     </div>
                   </div>
 
-                  {/* Prominent Course Selection Cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '22px' }}>
-                    <div 
-                      onClick={() => goToPage(ictFirstPage)}
-                      style={{ 
-                        background: 'linear-gradient(135deg, var(--rose-50), var(--page-bg))', 
-                        border: '2px solid var(--rose-200)', 
-                        borderRadius: 'var(--radius-md)', 
-                        padding: '18px', 
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 4px 14px rgba(136, 19, 55, 0.06)'
-                      }}
-                      className="hover-card"
-                    >
-                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--rose-700)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        ১ম খণ্ড • ৯টি ইউনিট
+                  {/* Active Course & 4-Year Shelf Launcher Card */}
+                  <div style={{ 
+                    background: 'linear-gradient(135deg, var(--rose-50), var(--page-bg))', 
+                    border: '2px solid var(--rose-300)', 
+                    borderRadius: 'var(--radius-md)', 
+                    padding: '20px', 
+                    marginBottom: '22px',
+                    textAlign: 'left',
+                    boxShadow: '0 4px 14px rgba(136, 19, 55, 0.08)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--rose-700)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        সক্রিয় কোর্স • {bookPages.filter(p => p.type === 'chapter').length}টি পূর্ণাঙ্গ অধ্যায়
                       </span>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-ink)', margin: '4px 0 6px' }}>
-                        💻 তথ্য ও যোগাযোগ প্রযুক্তি (ICT)
-                      </h3>
-                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                        হার্ডওয়্যার, সফটওয়্যার, সাইবার নিরাপত্তা, ওএসআই লেয়ার, স্প্রেডশিট ও ডাটাবেস ল্যাব।
-                      </p>
-                      <button className="btn btn-primary btn-sm" style={{ width: '100%' }}>
-                        আইসিটি কোর্স শুরু করুন →
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => setIsYearModalOpen(true)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <GraduationCap size={15} />
+                        <span>সকল বর্ষ ও বিষয় লাইব্রেরি 📚</span>
                       </button>
                     </div>
-
-                    <div 
-                      onClick={() => goToPage(econFirstPage)}
-                      style={{ 
-                        background: 'linear-gradient(135deg, var(--rose-50), var(--page-bg))', 
-                        border: '2px solid var(--rose-200)', 
-                        borderRadius: 'var(--radius-md)', 
-                        padding: '18px', 
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 4px 14px rgba(136, 19, 55, 0.06)'
-                      }}
-                      className="hover-card"
-                    >
-                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--rose-700)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        ২য় খণ্ড • ১০টি টপিক
-                      </span>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-ink)', margin: '4px 0 6px' }}>
-                        📈 অর্থনীতি ১ম ও ২য় পত্র
-                      </h3>
-                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                        দুষ্প্রাপ্যতা, সুযোগ ব্যয়, চাহিদা ও যোগান, উপযোগ, জাতীয় আয়, মুদ্রাস্ফীতি ও বাজেট।
-                      </p>
-                      <button className="btn btn-primary btn-sm" style={{ width: '100%' }}>
-                        অর্থনীতি কোর্স শুরু করুন →
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-ink)', margin: '4px 0 6px' }}>
+                      {currentCourseMeta?.titleBn}
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
+                      {currentCourseMeta?.description || 'জাতীয় বিশ্ববিদ্যালয়ের সিলেবাস অনুযায়ী বোর্ড প্রশ্নোত্তর, মূল ধারণা, পার্থক্য ছক ও অ্যাক্টিভ রিকল সমৃদ্ধ।'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={() => goToPage(3)}
+                        style={{ flex: 1, minWidth: '160px' }}
+                      >
+                        ১ম অধ্যায় পড়া শুরু করুন →
+                      </button>
+                      <button 
+                        className="btn btn-secondary" 
+                        onClick={() => goToPage(2)}
+                        style={{ flex: 1, minWidth: '140px' }}
+                      >
+                        <BookOpen size={16} />
+                        <span>সূচিপত্র দেখুন</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Quick Jump Buttons */}
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <button 
-                      className="btn btn-secondary"
-                      style={{ padding: '10px 20px', fontSize: '0.9rem' }}
-                      onClick={() => goToPage(2)}
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setIsYearModalOpen(true)}
                     >
-                      <BookOpen size={16} />
-                      <span>সূচিপত্র দেখুন</span>
+                      <GraduationCap size={15} />
+                      <span>৪-বর্ষের পাঠ্যক্রম শেলফ</span>
                     </button>
 
                     <button 
-                      className="btn btn-secondary"
-                      style={{ padding: '10px 20px', fontSize: '0.9rem' }}
-                      onClick={() => goToPage(24)}
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => goToPage(bookPages.length - 1)}
                     >
                       <span>বোর্ড পরীক্ষা হল</span>
                     </button>
@@ -774,127 +760,79 @@ export default function BookLayout({ appState, audio }) {
                   যেকোনো অধ্যায় বা পরিশিষ্টের পাতায় যেতে নিচে ক্লিক করুন।
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                  {/* Volume I Column */}
-                  <div style={{ background: 'var(--rose-50)', border: '1px solid var(--page-border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '2px solid var(--rose-300)', paddingBottom: '6px' }}>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--rose-900)' }}>
-                        ১ম খণ্ড: তথ্য ও যোগাযোগ প্রযুক্তি (৯টি ইউনিট)
-                      </h3>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--rose-700)', background: 'var(--rose-100)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
-                        {metrics.ictProgressPct}% সম্পন্ন
+                <div style={{ background: 'var(--rose-50)', border: '1px solid var(--page-border)', borderRadius: 'var(--radius-md)', padding: '18px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '2px solid var(--rose-300)', paddingBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--rose-700)', textTransform: 'uppercase' }}>
+                        {currentYearMeta?.yearNameBn} • {currentCourseMeta?.paperCode ? `Paper Code: ${currentCourseMeta.paperCode}` : 'অনার্স পাঠ্যক্রম'}
                       </span>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--rose-900)', margin: '2px 0 0' }}>
+                        {currentCourseMeta?.titleBn} ({bookPages.filter(p => p.type === 'chapter').length}টি পূর্ণাঙ্গ অধ্যায়)
+                      </h3>
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {BOOK_PAGES.filter(p => p.subject === 'ICT').map(page => {
-                        const isRead = page.topic && state.completedTopics.includes(page.topic.id);
-                        const isQuizDone = state.quizHistory[`quiz-${page.topic.id}`];
-
-                        return (
-                          <button
-                            key={page.pageNumber}
-                            className="toc-item-btn"
-                            onClick={() => goToPage(page.pageNumber)}
-                            style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px' }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                              <span style={{ 
-                                width: '16px', 
-                                height: '16px', 
-                                borderRadius: '50%', 
-                                border: '1px solid var(--rose-400)', 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                background: isRead ? 'var(--rose-600)' : 'transparent',
-                                color: '#fff',
-                                fontSize: '10px'
-                              }}>
-                                {isRead && "✓"}
-                              </span>
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {page.topic.title}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {isQuizDone && (
-                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: isQuizDone.correct ? '#059669' : '#dc2626' }}>
-                                  {isQuizDone.correct ? '★' : '•'}
-                                </span>
-                              )}
-                              <span className="toc-page-badge">পৃষ্ঠা {page.pageNumber}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={() => setIsYearModalOpen(true)}
+                      style={{ fontSize: '0.78rem', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <GraduationCap size={14} />
+                      <span>কোর্স লাইব্রেরি পরিবর্তন 📚</span>
+                    </button>
                   </div>
 
-                  {/* Volume II Column */}
-                  <div style={{ background: 'var(--rose-50)', border: '1px solid var(--page-border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '2px solid var(--rose-300)', paddingBottom: '6px' }}>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--rose-900)' }}>
-                        ২য় খণ্ড: অর্থনীতি ১ম ও ২য় পত্র (১০টি অধ্যায়)
-                      </h3>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--rose-700)', background: 'var(--rose-100)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
-                        {metrics.econProgressPct}% সম্পন্ন
-                      </span>
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '8px' }}>
+                    {bookPages.filter(p => p.type === 'chapter').map(page => {
+                      const isRead = page.topic && state.completedTopics.includes(page.topic.id);
+                      const isQuizDone = state.quizHistory[`quiz-${page.topic.id}`];
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {BOOK_PAGES.filter(p => p.subject === 'Economics').map(page => {
-                        const isRead = page.topic && state.completedTopics.includes(page.topic.id);
-                        const isQuizDone = state.quizHistory[`quiz-${page.topic.id}`];
-
-                        return (
-                          <button
-                            key={page.pageNumber}
-                            className="toc-item-btn"
-                            onClick={() => goToPage(page.pageNumber)}
-                            style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px' }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                              <span style={{ 
-                                width: '16px', 
-                                height: '16px', 
-                                borderRadius: '50%', 
-                                border: '1px solid var(--rose-400)', 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                background: isRead ? 'var(--rose-600)' : 'transparent',
-                                color: '#fff',
-                                fontSize: '10px'
-                              }}>
-                                {isRead && "✓"}
+                      return (
+                        <button
+                          key={page.pageNumber}
+                          className="toc-item-btn"
+                          onClick={() => goToPage(page.pageNumber)}
+                          style={{ textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                            <span style={{ 
+                              width: '18px', 
+                              height: '18px', 
+                              borderRadius: '50%', 
+                              border: '1px solid var(--rose-400)', 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              background: isRead ? 'var(--rose-600)' : 'transparent',
+                              color: '#fff',
+                              fontSize: '10px',
+                              flexShrink: 0
+                            }}>
+                              {isRead && "✓"}
+                            </span>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {page.topic.title}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            {isQuizDone && (
+                              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: isQuizDone.correct ? '#059669' : '#dc2626' }}>
+                                {isQuizDone.correct ? '★' : '•'}
                               </span>
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {page.topic.title}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {isQuizDone && (
-                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: isQuizDone.correct ? '#059669' : '#dc2626' }}>
-                                  {isQuizDone.correct ? '★' : '•'}
-                                </span>
-                              )}
-                              <span className="toc-page-badge">পৃষ্ঠা {page.pageNumber}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                            )}
+                            <span className="toc-page-badge">পৃষ্ঠা {page.pageNumber}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Appendices Row */}
-                <div style={{ marginTop: '22px', background: 'var(--book-bg)', border: '1px solid var(--page-border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                <div style={{ background: 'var(--book-bg)', border: '1px solid var(--page-border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--rose-900)', marginBottom: '10px' }}>
                     পরিশিষ্ট ও বিশেষ ইন্টারেক্টিভ শাখাসমূহ
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
-                    {BOOK_PAGES.filter(p => p.type !== 'chapter' && p.pageNumber > 2).map(page => (
+                    {bookPages.filter(p => p.type !== 'chapter' && p.pageNumber > 2).map(page => (
                       <button
                         key={page.pageNumber}
                         className="btn btn-secondary"
@@ -1033,7 +971,7 @@ export default function BookLayout({ appState, audio }) {
           title="সূচিপত্র খুলতে এখানে ক্লিক করুন"
         >
           <div className="book-page-num-badge">
-            {currentPage} / {BOOK_PAGES.length}
+            {currentPage} / {bookPages.length}
           </div>
           <span className="book-page-name-tag hide-on-mobile">
             {activePageObj.type === 'chapter' ? activePageObj.topic.title : activePageObj.title}
@@ -1045,7 +983,7 @@ export default function BookLayout({ appState, audio }) {
 
         <button 
           className="book-nav-btn next-btn"
-          disabled={currentPage >= BOOK_PAGES.length}
+          disabled={currentPage >= bookPages.length}
           onClick={nextPage}
           title="পরবর্তী পৃষ্ঠা (ডান তীর → বা বাম সোয়াইপ)"
           aria-label="পরবর্তী পৃষ্ঠা"
@@ -1063,6 +1001,13 @@ export default function BookLayout({ appState, audio }) {
           onClose={() => setIsTocDrawerOpen(false)}
           completedTopics={state.completedTopics}
           metrics={metrics}
+          bookPages={bookPages}
+          courseMeta={currentCourseMeta}
+          yearMeta={currentYearMeta}
+          onOpenCourseSelector={() => {
+            setIsTocDrawerOpen(false);
+            setIsYearModalOpen(true);
+          }}
         />
       )}
 
@@ -1229,6 +1174,17 @@ export default function BookLayout({ appState, audio }) {
         onClose={() => setIsAiSettingsOpen(false)}
         onChime={playChime}
       />
+
+      {/* 4-Year Curriculum & Course Selector Shelf Modal */}
+      {isYearModalOpen && (
+        <YearCourseSelector
+          isOpen={isYearModalOpen}
+          onClose={() => setIsYearModalOpen(false)}
+          currentYear={currentYearId}
+          currentCourse={currentCourseId}
+          onSelectCourse={handleSelectCourse}
+        />
+      )}
     </div>
   );
 }

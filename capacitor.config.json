@@ -1,0 +1,8 @@
+{
+  "appId": "com.study4xm.sociology",
+  "appName": "Study4XM Sociology Masterbook",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
