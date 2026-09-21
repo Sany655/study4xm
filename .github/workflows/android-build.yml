@@ -34,7 +34,7 @@ jobs:
         run: chmod +x ./android/gradlew
 
       - name: Install NPM Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Web Masterbook (Vite)
         run: npm run build:local
