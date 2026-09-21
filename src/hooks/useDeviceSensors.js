@@ -9,6 +9,40 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * 3. 3D Gyroscope / Device Orientation Tilt (পৃষ্ঠা ত্রিমাত্রিক হেলে পড়া)
  * 4. Ambient Light Adaptability & Offline Network status
  */
+export function triggerHaptic(patternType = 'tap') {
+  if (typeof window === 'undefined' || !('vibrate' in navigator)) return;
+
+  try {
+    switch (patternType) {
+      case 'pageTurn':
+        navigator.vibrate(15);
+        break;
+      case 'tap':
+        navigator.vibrate(25);
+        break;
+      case 'success':
+        navigator.vibrate([35, 40, 70]);
+        break;
+      case 'warning':
+        navigator.vibrate([60, 40, 60]);
+        break;
+      case 'error':
+        navigator.vibrate([100, 50, 100, 50, 120]);
+        break;
+      case 'shake':
+        navigator.vibrate([50, 40, 60, 40, 70]);
+        break;
+      case 'alarm':
+        navigator.vibrate([150, 80, 150, 80, 200]);
+        break;
+      default:
+        navigator.vibrate(30);
+    }
+  } catch {
+    // Ignored
+  }
+}
+
 export function useDeviceSensors({ onShakeDetected } = {}) {
   const [isSensorAvailable, setIsSensorAvailable] = useState(false);
   const [isHapticAvailable, setIsHapticAvailable] = useState(false);
@@ -23,46 +57,6 @@ export function useDeviceSensors({ onShakeDetected } = {}) {
   useEffect(() => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       setIsHapticAvailable(true);
-    }
-  }, []);
-
-  // Multi-tier Haptic Vibration Engine
-  const triggerHaptic = useCallback((patternType = 'tap') => {
-    if (typeof window === 'undefined' || !('vibrate' in navigator)) return;
-
-    try {
-      switch (patternType) {
-        case 'pageTurn':
-          navigator.vibrate(15);
-          break;
-        case 'tap':
-          navigator.vibrate(25);
-          break;
-        case 'success':
-          // Confident double-pulse
-          navigator.vibrate([35, 40, 70]);
-          break;
-        case 'warning':
-          // Gentle warning nudge
-          navigator.vibrate([60, 40, 60]);
-          break;
-        case 'error':
-          // Triplet warning pulse
-          navigator.vibrate([100, 50, 100, 50, 120]);
-          break;
-        case 'shake':
-          // Distinct rumble for motion gesture
-          navigator.vibrate([50, 40, 60, 40, 70]);
-          break;
-        case 'alarm':
-          // Exam countdown alert
-          navigator.vibrate([150, 80, 150, 80, 200]);
-          break;
-        default:
-          navigator.vibrate(30);
-      }
-    } catch {
-      // Ignored if user device restricts vibration
     }
   }, []);
 

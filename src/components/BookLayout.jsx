@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { buildBookPagesForCourse } from '../data/bookPages';
 import { getCourseConfig, getYearConfig } from '../data/curriculumRegistry';
 import YearCourseSelector from './YearCourseSelector';
-import { useDeviceSensors } from '../hooks/useDeviceSensors';
+import { useDeviceSensors, triggerHaptic } from '../hooks/useDeviceSensors';
 import BookPage from './BookPage';
 import TableOfContents from './TableOfContents';
 import DifferenceTablesView from './DifferenceTablesView';
@@ -146,6 +146,17 @@ export default function BookLayout({ appState, audio }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Page turn function (defined before shake detection)
+  const goToPage = useCallback((pageNum) => {
+    if (pageNum < 1 || pageNum > bookPages.length) return;
+    setCurrentPage(pageNum);
+    triggerHaptic('pageTurn');
+    if (!isAudioMuted && playChime) {
+      playChime('click');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [isAudioMuted, playChime, bookPages.length]);
+
   // Creative Android Hardware Sensors & Haptics Hook
   const handleShake = useCallback(() => {
     // Jump to high-yield flashcards / active recall when phone is shaken!
@@ -155,20 +166,9 @@ export default function BookLayout({ appState, audio }) {
     }
   }, [bookPages, goToPage]);
 
-  const { isSensorAvailable, isHapticAvailable, isOnline, tilt, shakeToast, triggerHaptic } = useDeviceSensors({
+  const { isSensorAvailable, isHapticAvailable, isOnline, tilt, shakeToast } = useDeviceSensors({
     onShakeDetected: handleShake
   });
-
-  // Page turn function
-  const goToPage = useCallback((pageNum) => {
-    if (pageNum < 1 || pageNum > bookPages.length) return;
-    setCurrentPage(pageNum);
-    triggerHaptic('pageTurn');
-    if (!isAudioMuted && playChime) {
-      playChime('click');
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [isAudioMuted, playChime, bookPages.length, triggerHaptic]);
 
   const nextPage = useCallback(() => {
     if (currentPage < bookPages.length) {
