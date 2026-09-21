@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { buildBookPagesForCourse } from '../data/bookPages';
 import { getCourseConfig, getYearConfig } from '../data/curriculumRegistry';
 import YearCourseSelector from './YearCourseSelector';
+import { useDeviceSensors } from '../hooks/useDeviceSensors';
 import BookPage from './BookPage';
 import TableOfContents from './TableOfContents';
 import DifferenceTablesView from './DifferenceTablesView';
@@ -143,15 +144,29 @@ export default function BookLayout({ appState, audio }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Creative Android Hardware Sensors & Haptics Hook
+  const handleShake = useCallback(() => {
+    // Jump to high-yield flashcards / active recall when phone is shaken!
+    const flashcardPage = bookPages.find(p => p.type === 'flashcards');
+    if (flashcardPage) {
+      goToPage(flashcardPage.pageNumber);
+    }
+  }, [bookPages, goToPage]);
+
+  const { isSensorAvailable, isHapticAvailable, isOnline, tilt, shakeToast, triggerHaptic } = useDeviceSensors({
+    onShakeDetected: handleShake
+  });
+
   // Page turn function
   const goToPage = useCallback((pageNum) => {
     if (pageNum < 1 || pageNum > bookPages.length) return;
     setCurrentPage(pageNum);
+    triggerHaptic('pageTurn');
     if (!isAudioMuted && playChime) {
       playChime('click');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [isAudioMuted, playChime, bookPages.length]);
+  }, [isAudioMuted, playChime, bookPages.length, triggerHaptic]);
 
   const nextPage = useCallback(() => {
     if (currentPage < bookPages.length) {
@@ -362,6 +377,30 @@ export default function BookLayout({ appState, audio }) {
 
   return (
     <div className="book-container">
+      {/* Creative Android Motion & Sensor Toast */}
+      {shakeToast && (
+        <div style={{
+          position: 'fixed',
+          top: '64px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'linear-gradient(135deg, var(--rose-900), var(--rose-800))',
+          color: '#fff',
+          padding: '10px 20px',
+          borderRadius: 'var(--radius-full)',
+          boxShadow: '0 8px 24px rgba(136, 19, 55, 0.35)',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          border: '1px solid var(--rose-400)'
+        }}>
+          <span>{shakeToast}</span>
+        </div>
+      )}
+
       {/* Top Book Running Navigation Bar */}
       <header className="book-top-bar">
         <div className="book-header-left">
