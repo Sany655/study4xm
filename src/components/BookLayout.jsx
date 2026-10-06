@@ -16,6 +16,8 @@ import ReferAndEarnView from './ReferAndEarnView';
 
 import GuidedTour from './GuidedTour';
 import AiSettingsModal from './AiSettingsModal';
+import PremiumUnlockModal from './PremiumUnlockModal';
+import { useAuth } from '../contexts/AuthContext';
 
 import { 
   BookOpen, 
@@ -68,7 +70,35 @@ export default function BookLayout({ appState, audio }) {
     return buildBookPagesForCourse(currentCourseId, currentYearId);
   }, [currentCourseId, currentYearId]);
 
+  // ── Course-aware metrics ────────────────────────────────────────────────────
+  // Override the static ICT+Economics totals from useAppState with accurate
+  // counts derived from the active course's actual chapter pages.
+  const courseMetrics = useMemo(() => {
+    const chapterPages = bookPages.filter(p => p.type === 'chapter');
+    const totalCourseTopics = chapterPages.length;
+    const completedInCourse = chapterPages.filter(
+      p => p.topic && state.completedTopics.includes(p.topic.id)
+    ).length;
+    const overallProgressPct = totalCourseTopics > 0
+      ? Math.round((completedInCourse / totalCourseTopics) * 100)
+      : 0;
+    return {
+      ...metrics,
+      totalTopics: totalCourseTopics,
+      completedTotalCount: completedInCourse,
+      overallProgressPct,
+      // Normalise quiz key names (useAppState uses totalQuizzesCorrect/Attempted)
+      quizzesPassed:    metrics.totalQuizzesCorrect    ?? metrics.quizzesPassed    ?? 0,
+      quizzesAttempted: metrics.totalQuizzesAttempted  ?? metrics.quizzesAttempted ?? 0,
+      // unresolvedMistakes alias
+      unresolvedMistakes: metrics.unresolvedMistakesCount ?? metrics.unresolvedMistakes ?? 0,
+    };
+  }, [bookPages, state.completedTopics, metrics]);
+  // ────────────────────────────────────────────────────────────────────────────
+
   const [isYearModalOpen, setIsYearModalOpen] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const { userData, upgradeToPremium } = useAuth() || {}; // Optional fallback if not wrapped
 
   // Persist current page in localStorage
   const [currentPage, setCurrentPage] = useState(() => {
@@ -160,7 +190,7 @@ export default function BookLayout({ appState, audio }) {
   // Creative Android Hardware Sensors & Haptics Hook
   const handleShake = useCallback(() => {
     // Jump to high-yield flashcards / active recall when phone is shaken!
-    const flashcardPage = bookPages.find(p => p.type === 'flashcards');
+    const flashcardPage = bookPages.find(p => p.type === 'flashcards' || p.type === 'flashcard');
     if (flashcardPage) {
       goToPage(flashcardPage.pageNumber);
     }
@@ -368,9 +398,9 @@ export default function BookLayout({ appState, audio }) {
   // Current page object
   const activePageObj = bookPages.find(p => p.pageNumber === currentPage) || bookPages[0];
 
-  // First pages for courses
-  const ictFirstPage = bookPages.find(p => p.subject === 'ICT')?.pageNumber || 3;
-  const econFirstPage = bookPages.find(p => p.subject === 'Economics')?.pageNumber || 12;
+  // Dynamic navigation targets for current course
+  const firstChapterPage = bookPages.find(p => p.type === 'chapter')?.pageNumber || 3;
+  const examHallPage = bookPages.find(p => p.type === 'exam')?.pageNumber || (bookPages.length - 1);
 
   // Bookmarked pages resolution
   const bookmarkedPagesList = bookPages.filter(p => 
@@ -479,13 +509,13 @@ export default function BookLayout({ appState, audio }) {
           {/* Real chapters read */}
           <div className="book-stat-tag hide-on-mobile" title="পড়া সম্পন্ন করা অধ্যায়ের সংখ্যা">
             <CheckCircle size={14} color="var(--rose-700)" />
-            <span>{metrics.completedTotalCount}/{metrics.totalTopics} পড়া সম্পন্ন ({metrics.overallProgressPct}%)</span>
+            <span>{courseMetrics.completedTotalCount}/{courseMetrics.totalTopics} পড়া সম্পন্ন ({courseMetrics.overallProgressPct}%)</span>
           </div>
 
           {/* Real quiz pass accuracy */}
           <div className="book-stat-tag hide-on-mobile" title="যাচাই কুইজে অংশ নেওয়ার রেকর্ড">
             <Award size={14} color="var(--rose-700)" />
-            <span>কুইজ: {metrics.quizzesPassed}/{metrics.quizzesAttempted}</span>
+            <span>কুইজ: {courseMetrics.quizzesPassed}/{courseMetrics.quizzesAttempted}</span>
           </div>
 
           {/* Bookmarks */}
@@ -650,7 +680,7 @@ export default function BookLayout({ appState, audio }) {
                     color: 'var(--rose-800)', 
                     marginBottom: '6px' 
                   }}>
-                    {currentYearMeta?.yearNameBn} • {currentCourseMeta?.titleBn}
+                    {currentYearMeta?.yearNumberBn} • {currentCourseMeta?.titleBn}
                   </h2>
 
                   <p style={{ 
@@ -676,14 +706,14 @@ export default function BookLayout({ appState, audio }) {
                         কোর্স শিখন অগ্রগতি রেকর্ড
                       </span>
                       <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--rose-700)' }}>
-                        {metrics.overallProgressPct}% সম্পন্ন
+                        {courseMetrics.overallProgressPct}% সম্পন্ন
                       </span>
                     </div>
 
                     {/* Progress bar */}
                     <div style={{ height: '8px', background: 'var(--rose-100)', borderRadius: '999px', overflow: 'hidden', marginBottom: '16px' }}>
                       <div style={{ 
-                        width: `${metrics.overallProgressPct}%`, 
+                        width: `${courseMetrics.overallProgressPct}%`, 
                         height: '100%', 
                         background: 'var(--rose-600)', 
                         transition: 'width 0.4s ease' 
@@ -702,15 +732,15 @@ export default function BookLayout({ appState, audio }) {
                       <div style={{ background: 'var(--rose-50)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--page-border)' }}>
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>যাচাই কুইজ</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--rose-900)' }}>
-                          {metrics.quizzesPassed} / {metrics.quizzesAttempted}
+                          {courseMetrics.quizzesPassed} / {courseMetrics.quizzesAttempted}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--rose-700)' }}>{metrics.quizAccuracyPct}% নির্ভুলতা</div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--rose-700)' }}>{courseMetrics.quizAccuracyPct}% নির্ভুলতা</div>
                       </div>
 
                       <div style={{ background: 'var(--rose-50)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--page-border)' }}>
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>সংরক্ষিত ভুল</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--rose-900)' }}>
-                          {metrics.unresolvedMistakes}
+                          {courseMetrics.unresolvedMistakes}
                         </div>
                         <div style={{ fontSize: '0.68rem', color: 'var(--rose-700)' }}>রিভিশন দরকার</div>
                       </div>
@@ -744,12 +774,12 @@ export default function BookLayout({ appState, audio }) {
                       {currentCourseMeta?.titleBn}
                     </h3>
                     <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
-                      {currentCourseMeta?.description || 'জাতীয় বিশ্ববিদ্যালয়ের সিলেবাস অনুযায়ী বোর্ড প্রশ্নোত্তর, মূল ধারণা, পার্থক্য ছক ও অ্যাক্টিভ রিকল সমৃদ্ধ।'}
+                      {currentCourseMeta?.description || currentCourseMeta?.descriptionBn || 'জাতীয় বিশ্ববিদ্যালয়ের সিলেবাস অনুযায়ী বোর্ড প্রশ্নোত্তর, মূল ধারণা, পার্থক্য ছক ও অ্যাক্টিভ রিকল সমৃদ্ধ।'}
                     </p>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                       <button 
                         className="btn btn-primary" 
-                        onClick={() => goToPage(3)}
+                        onClick={() => goToPage(firstChapterPage)}
                         style={{ flex: 1, minWidth: '160px' }}
                       >
                         ১ম অধ্যায় পড়া শুরু করুন →
@@ -777,7 +807,7 @@ export default function BookLayout({ appState, audio }) {
 
                     <button 
                       className="btn btn-secondary btn-sm"
-                      onClick={() => goToPage(bookPages.length - 1)}
+                      onClick={() => goToPage(examHallPage)}
                     >
                       <span>বোর্ড পরীক্ষা হল</span>
                     </button>
@@ -805,7 +835,7 @@ export default function BookLayout({ appState, audio }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '2px solid var(--rose-300)', paddingBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                     <div>
                       <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--rose-700)', textTransform: 'uppercase' }}>
-                        {currentYearMeta?.yearNameBn} • {currentCourseMeta?.paperCode ? `Paper Code: ${currentCourseMeta.paperCode}` : 'অনার্স পাঠ্যক্রম'}
+                        {currentYearMeta?.yearNumberBn} • {currentCourseMeta?.paperCode ? `Paper Code: ${currentCourseMeta.paperCode}` : 'অনার্স পাঠ্যক্রম'}
                       </span>
                       <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--rose-900)', margin: '2px 0 0' }}>
                         {currentCourseMeta?.titleBn} ({bookPages.filter(p => p.type === 'chapter').length}টি পূর্ণাঙ্গ অধ্যায়)
@@ -890,9 +920,9 @@ export default function BookLayout({ appState, audio }) {
             )}
 
         {/* PAGES 3 to 20: CHAPTER PAGES */}
-        {activePageObj.type === 'chapter' && (
+        {activePageObj.type === 'chapter' && activePageObj.topic && (
           <BookPage
-            key={activePageObj.topic.id}
+            key={activePageObj.topic.id || activePageObj.pageNumber}
             page={activePageObj}
             isCompleted={state.completedTopics.includes(activePageObj.topic.id)}
             isBookmarked={state.bookmarkedTopics.includes(activePageObj.topic.id)}
@@ -900,7 +930,7 @@ export default function BookLayout({ appState, audio }) {
             onToggleBookmark={toggleBookmark}
             onRecordQuiz={recordQuizAttempt}
             onRecordRecall={recordActiveRecall}
-            quizRecord={state.quizHistory[`quiz-${activePageObj.topic.id}`]}
+            quizRecord={state.quizHistory}
             recallRecord={state.recallHistory[activePageObj.topic.id]}
             onSpeak={speak}
             onChime={playChime}
@@ -909,7 +939,7 @@ export default function BookLayout({ appState, audio }) {
         )}
 
         {/* APPENDIX A: DIFFERENCE TABLES */}
-        {activePageObj.type === 'differences' && (
+        {(activePageObj.type === 'differences' || activePageObj.type === 'formula') && (
           <div className="book-page-shell">
             <div className="page-running-head">
               <span className="page-chapter-badge">পরিশিষ্ট ক</span>
@@ -920,7 +950,7 @@ export default function BookLayout({ appState, audio }) {
         )}
 
         {/* APPENDIX B: FLASHCARDS */}
-        {activePageObj.type === 'flashcards' && (
+        {(activePageObj.type === 'flashcards' || activePageObj.type === 'flashcard') && (
           <div className="book-page-shell">
             <div className="page-running-head">
               <span className="page-chapter-badge">পরিশিষ্ট খ</span>
@@ -948,7 +978,24 @@ export default function BookLayout({ appState, audio }) {
               <span className="page-chapter-badge">পরিশिष्ट ঘ (Premium)</span>
               <span>টাইমারযুক্ত বোর্ড পরীক্ষা হল • ১০০/১০০ প্রস্তুতি মূল্যায়ন</span>
             </div>
-            <PremiumExamSimulatorView appState={appState} />
+            {userData?.isPremium ? (
+              <PremiumExamSimulatorView appState={appState} />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--rose-50)', borderRadius: '12px', border: '1px dashed var(--rose-300)' }}>
+                <Award size={64} color="var(--rose-400)" style={{ margin: '0 auto 16px' }} />
+                <h3 style={{ fontSize: '1.4rem', color: 'var(--text-ink)', marginBottom: '12px' }}>Premium Feature Locked</h3>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>
+                  The Offline AI-Guided Exam Simulator is a premium feature. Unlock it by referring friends or upgrading!
+                </p>
+                <button 
+                  onClick={() => setIsPremiumModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: 600 }}
+                >
+                  Unlock Premium Now
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -1039,7 +1086,7 @@ export default function BookLayout({ appState, audio }) {
           onSelectPage={goToPage}
           onClose={() => setIsTocDrawerOpen(false)}
           completedTopics={state.completedTopics}
-          metrics={metrics}
+          metrics={courseMetrics}
           bookPages={bookPages}
           courseMeta={currentCourseMeta}
           yearMeta={currentYearMeta}
@@ -1212,6 +1259,18 @@ export default function BookLayout({ appState, audio }) {
         isOpen={isAiSettingsOpen}
         onClose={() => setIsAiSettingsOpen(false)}
         onChime={playChime}
+      />
+
+      {/* Premium Unlock Modal */}
+      <PremiumUnlockModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        userData={userData}
+        onPaymentSuccess={async (provider) => {
+          if (userData && !userData.isPremium && upgradeToPremium) {
+            await upgradeToPremium();
+          }
+        }}
       />
 
       {/* 4-Year Curriculum & Course Selector Shelf Modal */}

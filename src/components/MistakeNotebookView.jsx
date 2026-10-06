@@ -1,8 +1,8 @@
 import React from 'react';
 
-export default function MistakeNotebookView({ mistakes, onResolveMistake, onChime }) {
+export default function MistakeNotebookView({ mistakes = [], onResolveMistake, onChime }) {
   const handleResolve = (id) => {
-    onResolveMistake(id);
+    if (onResolveMistake) onResolveMistake(id);
     if (onChime) onChime('success');
   };
 

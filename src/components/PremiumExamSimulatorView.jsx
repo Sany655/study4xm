@@ -44,7 +44,9 @@ export default function PremiumExamSimulatorView({ appState }) {
           <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <button 
               className="btn btn-primary"
-              onClick={() => appState.navigate('refer-earn')} 
+              onClick={() => {
+                if (appState?.navigate) appState.navigate('refer-earn');
+              }} 
               style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 24px', fontSize: '1rem', background: '#d97706', borderColor: '#d97706' }}
             >
               <Crown size={20} />

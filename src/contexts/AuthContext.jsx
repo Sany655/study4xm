@@ -124,12 +124,24 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  async function upgradeToPremium() {
+    if (!currentUser) return;
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, { isPremium: true });
+      setUserData(prev => ({ ...prev, isPremium: true }));
+    } catch (err) {
+      console.error("Error upgrading to premium: ", err);
+    }
+  }
+
   const value = {
     currentUser,
     userData,
     signup,
     login,
-    logout
+    logout,
+    upgradeToPremium
   };
 
   return (

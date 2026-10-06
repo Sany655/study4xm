@@ -3,12 +3,13 @@ import { ICT_SYLLABUS } from '../data/ictData';
 import { ECONOMICS_SYLLABUS } from '../data/economicsData';
 
 export default function ExamSimulatorView({
+  appState,
   is100Mode = false,
-  onAddXP,
-  onLogMistake,
+  onAddXP = appState?.addXP,
+  onLogMistake = appState?.logMistake,
   onChime,
-  onNavigate,
-  stats
+  onNavigate = appState?.setCurrentPage,
+  stats = appState?.metrics
 }) {
   const [examStarted, setExamStarted] = useState(false);
   const [questions, setQuestions] = useState([]);
@@ -100,16 +101,18 @@ export default function ExamSimulatorView({
       } else {
         weak.add(q.unit);
         recommendations.push({ unit: q.unit, subject: q.subject, question: q.question });
-        onLogMistake({
-          subject: q.subject,
-          unit: q.unit,
-          topicTitle: q.question,
-          question: q.question,
-          studentAnswer: choice !== undefined ? q.options[choice] : "উত্তর দেওয়া হয়নি",
-          correctAnswer: q.options[q.correct],
-          whyWrong: "বোর্ড মডেল টেস্টে ভুল অপশন নির্বাচন।",
-          correctConcept: q.explanation
-        });
+        if (onLogMistake) {
+          onLogMistake({
+            subject: q.subject,
+            unit: q.unit,
+            topicTitle: q.question,
+            question: q.question,
+            studentAnswer: choice !== undefined ? q.options[choice] : "উত্তর দেওয়া হয়নি",
+            correctAnswer: q.options[q.correct],
+            whyWrong: "বোর্ড মডেল টেস্টে ভুল অপশন নির্বাচন।",
+            correctConcept: q.explanation
+          });
+        }
       }
     });
 

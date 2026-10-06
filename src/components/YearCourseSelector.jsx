@@ -25,12 +25,19 @@ export default function YearCourseSelector({
   onClose
 }) {
   const [selectedYearId, setSelectedYearId] = useState(currentYear || 1);
+  const [upcomingNotice, setUpcomingNotice] = useState(null);
   const activeYearData = getYearConfig(selectedYearId);
 
   const handleCourseClick = (course) => {
     if (course.status === 'upcoming') {
-      return; // Not yet ingested, shows roadmap
+      setUpcomingNotice({
+        titleBn: course.titleBn,
+        paperCode: course.paperCode,
+        yearNumberBn: activeYearData.yearNumberBn
+      });
+      return;
     }
+    setUpcomingNotice(null);
     onSelectCourse(selectedYearId, course.id);
     if (onClose) onClose();
   };
@@ -77,7 +84,10 @@ export default function YearCourseSelector({
               <button
                 key={year.yearId}
                 className={`year-tab-btn ${isSelected ? 'active' : ''}`}
-                onClick={() => setSelectedYearId(year.yearId)}
+                onClick={() => {
+                  setSelectedYearId(year.yearId);
+                  setUpcomingNotice(null);
+                }}
               >
                 <div className="tab-top">
                   <span className="year-title-bn">{year.yearNumberBn}</span>
@@ -108,6 +118,36 @@ export default function YearCourseSelector({
             <span>ক্রেডিট: <strong>{activeYearData.totalCredits}</strong></span>
           </div>
         </div>
+
+        {/* Upcoming Course Notice Banner */}
+        {upcomingNotice && (
+          <div style={{
+            margin: '0 20px 16px',
+            padding: '12px 16px',
+            background: 'var(--rose-100)',
+            border: '1.5px solid var(--rose-300)',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Sparkles size={20} color="var(--rose-700)" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: '0.85rem', color: 'var(--rose-950)', lineHeight: 1.5 }}>
+                <strong>{upcomingNotice.titleBn} {upcomingNotice.paperCode ? `(কোড: ${upcomingNotice.paperCode})` : ''}</strong>: 
+                এই কোর্সটির পূর্ণাঙ্গ কনটেন্ট শীঘ্রই যুক্ত হচ্ছে। বর্তমানে <strong>১ম বর্ষের সকল কোর্স</strong> সম্পূর্ণরূপে সক্রিয় ও অধ্যয়নযোগ্য।
+              </div>
+            </div>
+            <button
+              onClick={() => setUpcomingNotice(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--rose-700)', padding: '4px' }}
+              title="বিজ্ঞপ্তি বন্ধ করুন"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
         {/* Courses Grid */}
         <div className="courses-grid">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Volume2, Bookmark, CheckCircle, Lightbulb, PenTool, HelpCircle, Sparkles } from 'lucide-react';
 import ExcelSimulator from './interactive/ExcelSimulator';
 import OSIVisualizer from './interactive/OSIVisualizer';
@@ -32,8 +32,15 @@ export default function BookPage({
   const [activeMarkTab, setActiveMarkTab] = useState('two');
   const [recallText, setRecallText] = useState(recallRecord?.text || '');
   const [showRecallSolution, setShowRecallSolution] = useState(false);
+  const [activeQuizIdx, setActiveQuizIdx] = useState(0); // which MCQ is active
 
   const topic = page.topic;
+
+  useEffect(() => {
+    setActiveQuizIdx(0);
+    setRecallText(recallRecord?.text || '');
+    setShowRecallSolution(false);
+  }, [topic?.id]);
   if (!topic) return null;
 
   // Resolve parent unit for enriched curriculum elements
@@ -48,6 +55,27 @@ export default function BookPage({
   const questionBank = topic.questionBank || parentUnit?.questionBank;
   const references = topic.references || parentUnit?.references;
 
+  // ── Schema normalization ────────────────────────────────────────────────
+  // ICT/Economics data uses: topic.keywords, topic.examAnswers.{twoMark,fiveMark,tenMark}
+  // Sociology data uses:     topic.keyTerms, topic.boardExamQuestions.{twoMark,fiveMark,tenMark}.{question,answer}
+  const keywords = topic.keywords || topic.keyTerms || [];
+
+  const boardQs = topic.boardExamQuestions || {};
+  const examAnswers = topic.examAnswers || (
+    Object.keys(boardQs).length > 0 ? {
+      twoMark:  boardQs.twoMark?.answer  || '',
+      fiveMark: boardQs.fiveMark?.answer || '',
+      tenMark:  boardQs.tenMark?.answer  || '',
+    } : null
+  );
+  // Exam question text (new schema only — shown above the answer in Level 4)
+  const examQuestions = {
+    twoMark:  boardQs.twoMark?.question  || '',
+    fiveMark: boardQs.fiveMark?.question || '',
+    tenMark:  boardQs.tenMark?.question  || '',
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
   // Resolve matching granular subtopics for this unit/chapter
   let granularSubtopics = [];
   if (page.subject === 'ICT' && page.unitId) {
@@ -56,6 +84,20 @@ export default function BookPage({
   } else if (page.subject === 'Economics' && page.topicId) {
     const topicObj = GRANULAR_ECONOMICS_SYLLABUS.find(t => t.topicId === page.topicId);
     if (topicObj) granularSubtopics = topicObj.subtopics;
+  } else if (topic.subtopics && topic.subtopics.length > 0) {
+    granularSubtopics = topic.subtopics;
+  } else if (keywords && keywords.length > 0) {
+    granularSubtopics = keywords.map((kw, idx) => {
+      const term = typeof kw === 'string' ? kw : kw.term;
+      const def = typeof kw === 'string' ? `${kw}-এর বিশদ বিশ্লেষণ ও তাৎপর্য` : kw.def;
+      return {
+        id: `${topic.id}-kw-${idx}`,
+        title: term,
+        titleEn: term,
+        keywords: [term],
+        coreConcept: def
+      };
+    });
   }
 
   const handleReadAloud = () => {
@@ -65,14 +107,16 @@ export default function BookPage({
   };
 
   const handleSelectQuizOption = (optIdx) => {
-    if (!topic.mcqs || !topic.mcqs[0]) return;
-    const qObj = topic.mcqs[0];
+    const mcqs = topic.mcqs;
+    if (!mcqs || !mcqs[activeQuizIdx]) return;
+    const qObj = mcqs[activeQuizIdx];
     const isCorrect = optIdx === qObj.correct;
+    // Key per-question so each has its own history record
     onRecordQuiz(
-      `quiz-${topic.id}`,
+      `quiz-${topic.id}-${activeQuizIdx}`,
       optIdx,
       isCorrect,
-      { ...qObj, subject: page.subject, unit: page.chapterTitle }
+      { ...qObj, subject: page.subject || page.volume, unit: page.chapterTitle }
     );
     if (onChime) onChime(isCorrect ? 'success' : 'warn');
   };
@@ -82,8 +126,8 @@ export default function BookPage({
       topic.id,
       rating,
       recallText,
-      topic.examAnswers ? topic.examAnswers.twoMark : "",
-      page.subject,
+      examAnswers ? examAnswers.twoMark : '',
+      page.subject || page.volume,
       page.chapterTitle,
       topic.title
     );
@@ -91,8 +135,11 @@ export default function BookPage({
     if (onChime) onChime('success');
   };
 
-  const currentQuiz = topic.mcqs && topic.mcqs[0];
-  const subjectNameBangla = page.subject === 'ICT' ? 'তথ্য ও যোগাযোগ প্রযুক্তি' : 'অর্থনীতি';
+  const allMcqs = topic.mcqs || [];
+  const currentQuiz = allMcqs[activeQuizIdx] || null;
+  const activeQuizKey = `quiz-${topic.id}-${activeQuizIdx}`;
+  // Use page.volume (= course titleBn) so all courses show the correct name in the running head
+  const subjectNameBangla = page.volume || page.subject || '';
 
   return (
     <div className="book-page-shell">
@@ -189,11 +236,15 @@ export default function BookPage({
               বোর্ড পরীক্ষায় পূর্ণ নম্বর অর্জনের জন্য প্রয়োজনীয় সঠিক পারিভাষিক সংজ্ঞা:
             </p>
             <div className="book-keywords-grid">
-              {topic.keywords && topic.keywords.map((kw, i) => (
+              {keywords.length > 0 ? keywords.map((kw, i) => (
                 <div key={i} className="book-keyword-pill" title={kw.def}>
                   <strong>{kw.term}:</strong> {kw.def}
                 </div>
-              ))}
+              )) : (
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  এই পাঠের মূল পারিভাষিক শব্দকোষ সংযুক্ত হয়নি।
+                </p>
+              )}
             </div>
           </div>
 
@@ -302,10 +353,15 @@ export default function BookPage({
             </div>
 
             <div style={{ background: 'var(--book-bg)', borderLeft: '4px solid var(--rose-600)', padding: '16px 20px', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0', whiteSpace: 'pre-line', fontSize: '0.95rem', lineHeight: 1.8 }}>
-              {topic.examAnswers ? (
-                activeMarkTab === 'two' ? topic.examAnswers.twoMark :
-                activeMarkTab === 'five' ? topic.examAnswers.fiveMark :
-                topic.examAnswers.tenMark
+              {examQuestions && examQuestions[activeMarkTab === 'two' ? 'twoMark' : activeMarkTab === 'five' ? 'fiveMark' : 'tenMark'] && (
+                <p style={{ fontWeight: 700, color: 'var(--text-ink)', marginBottom: '8px' }}>
+                  প্রশ্ন: {examQuestions[activeMarkTab === 'two' ? 'twoMark' : activeMarkTab === 'five' ? 'fiveMark' : 'tenMark']}
+                </p>
+              )}
+              {examAnswers ? (
+                activeMarkTab === 'two' ? examAnswers.twoMark :
+                activeMarkTab === 'five' ? examAnswers.fiveMark :
+                examAnswers.tenMark
               ) : "আদর্শ উত্তর লোড করা হচ্ছে..."}
             </div>
           </div>
@@ -319,16 +375,15 @@ export default function BookPage({
         </>
       )}
 
-
       {/* GRANULAR SYLLABUS BREAKDOWN CARDS WITH REAL-TIME AI & PROMPT MODIFIER */}
       {granularSubtopics && granularSubtopics.length > 0 && (
         <div className="book-section" style={{ marginTop: '36px', marginBottom: '30px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
-            marginBottom: '14px', 
-            flexWrap: 'wrap', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '14px',
+            flexWrap: 'wrap',
             gap: '8px',
             borderBottom: '2px solid var(--rose-200)',
             paddingBottom: '10px'
@@ -336,25 +391,24 @@ export default function BookPage({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="book-section-label" style={{ margin: 0 }}>
-                  🎯 সম্পূর্ণ সিলেবাসের সকল টপিক কার্ড (AI রিয়েল-টাইম ব্যাখ্যা)
+                  🎯 সম্পূর্ণ সিলেবাসের সকল টপিক কার্ড (AI রিয়েল-টাইম ব্যাখ্যা)
                 </span>
-                <span style={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 800, 
-                  color: 'var(--rose-700)', 
-                  background: 'var(--rose-100)', 
-                  padding: '2px 10px', 
-                  borderRadius: 'var(--radius-full)' 
+                <span style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: 'var(--rose-700)',
+                  background: 'var(--rose-100)',
+                  padding: '2px 10px',
+                  borderRadius: 'var(--radius-full)'
                 }}>
-                  {granularSubtopics.length}টি বিস্তারিত বিষয়
+                  {granularSubtopics.length}টি বিস্তারিত বিষয়
                 </span>
               </div>
               <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                যেকোনো কার্ডে ক্লিক করে রিয়েল-টাইম এআই ব্যাখ্যা দেখুন এবং কার্ডের নিচে প্রম্পট লিখে নিজের ইচ্ছামতো উত্তর পরিবর্তন করুন:
+                যেকোনো কার্ডে ক্লিক করে রিয়েল-টাইম এআই ব্যাখ্যা দেখুন এবং কার্ডের নিচে প্রম্পট লিখে নিজের ইচ্ছামতো উত্তর পরিবর্তন করুন:
               </p>
             </div>
           </div>
-
           <div className="granular-cards-list">
             {granularSubtopics.map(sub => (
               <GranularSyllabusCard
@@ -371,28 +425,50 @@ export default function BookPage({
         </div>
       )}
 
-      {/* Level 5: In-Book Interactive Checkpoint Quiz */}
-
-      {currentQuiz && (
+      {/* Level 5: In-Book Interactive Checkpoint Quiz — all MCQs with navigator */}
+      {allMcqs.length > 0 && currentQuiz && (
         <div className="book-quiz-box">
-          <span className="quiz-badge">লেভেল ৫: তাৎক্ষণিক যাচাই কুইজ (Checkpoint Quiz)</span>
+          {/* Quiz header with question navigator */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+            <span className="quiz-badge">লেভেল ৫: তাৎক্ষণিক যাচাই কুইজ (Checkpoint Quiz)</span>
+            {allMcqs.length > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={activeQuizIdx === 0}
+                  onClick={() => setActiveQuizIdx(i => i - 1)}
+                  style={{ padding: '3px 8px', minWidth: 0 }}
+                >◀</button>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  প্রশ্ন {activeQuizIdx + 1} / {allMcqs.length}
+                </span>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={activeQuizIdx === allMcqs.length - 1}
+                  onClick={() => setActiveQuizIdx(i => i + 1)}
+                  style={{ padding: '3px 8px', minWidth: 0 }}
+                >▶</button>
+              </div>
+            )}
+          </div>
+
           <p style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-ink)', marginBottom: '14px' }}>
             ❓ {currentQuiz.question}
           </p>
 
           <div>
             {currentQuiz.options.map((opt, i) => {
-              let optClass = "quiz-option-btn";
-              if (quizRecord && quizRecord.attempted) {
-                if (i === currentQuiz.correct) optClass += " correct";
-                else if (i === quizRecord.choice) optClass += " incorrect";
+              const rec = quizRecord ? quizRecord[activeQuizKey] : null;
+              let optClass = 'quiz-option-btn';
+              if (rec && rec.attempted) {
+                if (i === currentQuiz.correct) optClass += ' correct';
+                else if (i === rec.choice) optClass += ' incorrect';
               }
-
               return (
                 <button
                   key={i}
                   className={optClass}
-                  disabled={quizRecord && quizRecord.attempted}
+                  disabled={rec && rec.attempted}
                   onClick={() => handleSelectQuizOption(i)}
                 >
                   <strong style={{ color: 'var(--rose-700)', width: '20px' }}>
@@ -404,19 +480,30 @@ export default function BookPage({
             })}
           </div>
 
-          {quizRecord && quizRecord.attempted && (
-            <div className={`quiz-explanation-text ${quizRecord.correct ? 'correct' : 'incorrect'}`} style={{
-              background: quizRecord.correct ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-              color: quizRecord.correct ? '#10b981' : '#f87171',
-              border: quizRecord.correct ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(239, 68, 68, 0.35)'
-            }}>
-              <strong>{quizRecord.correct ? '✅ অভিনন্দন! সঠিক উত্তর।' : '❌ ভুল উত্তর (ভুলটি রিভিশন নোটবুকে যোগ করা হয়েছে)'}</strong>
-              <p style={{ marginTop: '4px', color: 'var(--text-body)' }}>{currentQuiz.explanation}</p>
-            </div>
-          )}
+          {(() => {
+            const rec = quizRecord ? quizRecord[activeQuizKey] : null;
+            return rec && rec.attempted ? (
+              <div className={`quiz-explanation-text ${rec.correct ? 'correct' : 'incorrect'}`} style={{
+                background: rec.correct ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                color: rec.correct ? '#10b981' : '#f87171',
+                border: rec.correct ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(239, 68, 68, 0.35)'
+              }}>
+                <strong>{rec.correct ? '✅ অভিনন্দন! সঠিক উত্তর।' : '❌ ভুল উত্তর (ভুলটি রিভিশন নোটবুকে যোগ করা হয়েছে)'}</strong>
+                <p style={{ marginTop: '4px', color: 'var(--text-body)' }}>{currentQuiz.explanation}</p>
+                {activeQuizIdx < allMcqs.length - 1 && (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    style={{ marginTop: '10px' }}
+                    onClick={() => setActiveQuizIdx(i => i + 1)}
+                  >
+                    পরবর্তী প্রশ্ন →
+                  </button>
+                )}
+              </div>
+            ) : null;
+          })()}
         </div>
       )}
-
       {/* Level 5b: Active Recall Notepad */}
       <div className="book-recall-notepad">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -459,7 +546,7 @@ export default function BookPage({
               আদর্শ বোর্ড উত্তরের নমুনা:
             </span>
             <p style={{ fontSize: '0.92rem', lineHeight: 1.6, marginBottom: '12px' }}>
-              {topic.examAnswers ? topic.examAnswers.twoMark : ""}
+              {examAnswers ? examAnswers.twoMark : ''}
             </p>
             <span style={{ fontSize: '0.82rem', fontWeight: 700, display: 'block', marginBottom: '6px' }}>
               আপনার স্মৃতিশক্তির নির্ভুলতা মূল্যায়ন করুন:

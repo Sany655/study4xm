@@ -38,6 +38,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 8,
         author: "ড. মো: জাহিদুল ইসলাম ও সহযোগী গবেষকবৃন্দ",
+        descriptionBn: "সমাজবিজ্ঞানের মূল তত্ত্ব, প্রতিষ্ঠাতা তাত্ত্বিকদের দর্শন, সামাজিক স্তরবিন্যাস ও আধুনিক গবেষণা পদ্ধতির ১০০/১০০ পূর্ণাঙ্গ ডিজিটাল মাস্টারবুক।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: সমাজবিজ্ঞানের সূচনা ও পরিধি", titleEn: "Introduction: Nature, Scope & Thinkers" },
           { id: 2, titleBn: "অধ্যায় ২: সমাজবিজ্ঞানের পদ্ধতি ও পরিমাপ", titleEn: "Methods and Measures in Sociology" },
@@ -62,6 +63,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 9,
         author: "প্রফেসর মো: জাহিদুল ইসলাম",
+        descriptionBn: "প্রাগৈতিহাসিক যুগ, প্রাচীন বিশ্বসভ্যতা, সামন্ততন্ত্র, পুঁজিবাদ ও শিল্প বিপ্লব থেকে বাংলাদেশের অভ্যুদয়ের সামাজিক ইতিহাসের সম্পূর্ণ রূপরেখা।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: সামাজিক ইতিহাসের স্বরূপ ও গুরুত্ব", titleEn: "Introduction to Social History" },
           { id: 2, titleBn: "অধ্যায় ২: প্রাগৈতিহাসিক যুগ ও প্রস্তর যুগ", titleEn: "Prehistoric Age (Stone Age)" },
@@ -87,6 +89,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 8,
         author: "প্রফেসর মো: মাহফুজ-উল-আলম",
+        descriptionBn: "পরিবার ও বিবাহের উৎপত্তি, রূপভেদ, পরিবর্তনশীল কাঠামো, জেন্ডার সম্পর্ক এবং বাংলাদেশের পারিবারিক আইন ও বিবাহ নিবন্ধনের পূর্ণাঙ্গ পাঠ।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: পরিবার ও বিবাহ অধ্যয়নের তাৎপর্য", titleEn: "Importance of Studying Family" },
           { id: 2, titleBn: "অধ্যায় ২: পরিবার ও বিবাহের উৎপত্তি ও বিকাশ", titleEn: "Origin & Development of Family" },
@@ -111,6 +114,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 10,
         author: "প্রফেসর মো: মাহফুজ-উল-আলম",
+        descriptionBn: "দারিদ্র্য, অপরাধ, জনসংখ্যা সংকট, নগরায়ণ, মাদকাসক্তি ও পরিবেশগত বিপর্যয়ের সমাজতাত্ত্বিক কারণ ও সমাধানের সম্পূর্ণ প্রস্তুতি।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: সামাজিক সমস্যার সমাজবিজ্ঞান", titleEn: "Sociology of Social Problems" },
           { id: 2, titleBn: "অধ্যায় ২: জনসংখ্যা ও পরিবেশগত সংকট", titleEn: "Population & Environment" },
@@ -137,6 +141,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 8,
         author: "প্রফেসর ড. মুন্সী শরীফ-উজজামান",
+        descriptionBn: "প্রাচীন বাংলা, ব্রিটিশ ঔপনিবেশিক শাসন, ১৯৪৭-এর দেশভাগ, ভাষা আন্দোলন, ১৯৭১-এর মুক্তিযুদ্ধ ও ২০২৪-এর গণঅভ্যুত্থানের ঐতিহাসিক ইতিবৃত্ত।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: প্রাক-ঔপনিবেশিক যুগ ও প্রাচীন বাংলা", titleEn: "Pre-colonial Era" },
           { id: 2, titleBn: "অধ্যায় ২: ঔপনিবেশিক যুগ (১৮শ ও ১৯শ শতক)", titleEn: "Colonial Era (18th-19th C)" },
@@ -161,6 +166,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 7,
         author: "মো: রফিকুল ইসলাম ও কাজী আরাফাত হোসেন",
+        descriptionBn: "রাষ্ট্রের ধারণা, সংবিধান, ক্ষমতা স্বতন্ত্রীকরণ, সরকারের রূপভেদ, রাজনৈতিক দল, সুশীল সমাজ ও সুশাসনের মৌলিক রাজনৈতিক পাঠ।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: রাষ্ট্রবিজ্ঞান পরিচিতি ও রাষ্ট্রের উৎপত্তি", titleEn: "Intro to Political Science & State" },
           { id: 2, titleBn: "অধ্যায় ২: সংবিধান: প্রকৃতি ও সংশোধন প্রক্রিয়া", titleEn: "Constitution & Supremacy" },
@@ -184,6 +190,7 @@ export const ACADEMIC_YEARS = [
         status: "mastered",
         totalChapters: 10,
         author: "ম্যাঙ্কিউ, কেস ও ফেয়ার, প্রফেসর সোহরাওয়ার্দী",
+        descriptionBn: "চাহিদা-যোগান ভারসাম্য, ভোক্তার আচরণ, বাজার কাঠামো, জাতীয় আয়, মুদ্রাস্ফীতি ও আন্তর্জাতিক বাণিজ্যের সম্পূর্ণ সমীকরণ ও ইন্টারঅ্যাক্টিভ চিত্র।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: অর্থনীতির মৌলিক বিষয় ও দুষ্প্রাপ্যতা", titleEn: "Fundamentals of Economics" },
           { id: 2, titleBn: "অধ্যায় ২: চাহিদা ও যোগান বিশ্লেষণ", titleEn: "Supply and Demand Analysis" },
@@ -210,6 +217,7 @@ export const ACADEMIC_YEARS = [
         status: "mastered",
         totalChapters: 9,
         author: "ল্যাম্বার্ট, রাসেল ও নরভিগ, প্রকাশ কুমার দাস",
+        descriptionBn: "কম্পিউটার হার্ডওয়্যার-সফটওয়্যার, অফিস অ্যাপস, সাইবার সিকিউরিটি, ওএসআই লেয়ার ও ডেটা সায়েন্সের হাতে-কলমে ইন্টারেক্টিভ ল্যাব।",
         chapters: [
           { id: 1, titleBn: "ইউনিট ১: আইসিটি ও কম্পিউটার সিস্টেমের পরিচয়", titleEn: "Intro to ICT & Systems" },
           { id: 2, titleBn: "ইউনিট ২: কম্পিউটার হার্ডওয়্যার ও সফটওয়্যার", titleEn: "Hardware & Software" },

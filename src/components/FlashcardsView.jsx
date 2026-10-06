@@ -23,6 +23,16 @@ export default function FlashcardsView({ onUpdateSRS, onChime }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
+  if (!cards || cards.length === 0) {
+    return (
+      <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '8px' }}>🃏</span>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-ink)' }}>কোনো ফ্ল্যাশকার্ড পাওয়া যায়নি</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>এই বিষয়ের জন্য ফ্ল্যাশকার্ড শীঘ্রই যুক্ত হবে।</p>
+      </div>
+    );
+  }
+
   const card = cards[currentIndex] || cards[0];
 
   const handleFlip = () => {
@@ -31,9 +41,11 @@ export default function FlashcardsView({ onUpdateSRS, onChime }) {
   };
 
   const handleSRSRating = (rating) => {
-    onUpdateSRS(`fc-${currentIndex}`, rating);
+    if (onUpdateSRS) onUpdateSRS(`fc-${currentIndex}`, rating);
     setIsFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % cards.length);
+    if (cards.length > 0) {
+      setCurrentIndex((prev) => (prev + 1) % cards.length);
+    }
   };
 
   return (

@@ -259,6 +259,29 @@ export function useAppState() {
   const nextLevelXP = level * 250;
   const progressXP = state.xp % 250;
 
+  const logMistake = useCallback((mistakeObj) => {
+    setState(prev => {
+      const mistakeEntry = {
+        id: mistakeObj.id || `mistake-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        date: new Date().toLocaleDateString(),
+        resolved: false,
+        ...mistakeObj
+      };
+      return {
+        ...prev,
+        mistakes: [mistakeEntry, ...prev.mistakes]
+      };
+    });
+  }, []);
+
+  const navigate = useCallback((target) => {
+    if (typeof target === 'number') {
+      setState(prev => ({ ...prev, currentPage: target }));
+    } else if (typeof target === 'string') {
+      window.dispatchEvent(new CustomEvent('study4xm_navigate', { detail: target }));
+    }
+  }, []);
+
   return {
     state,
     addXP,
@@ -267,13 +290,16 @@ export function useAppState() {
     toggleBookmark,
     recordQuizAttempt,
     recordRecallAttempt,
+    recordActiveRecall: recordRecallAttempt,
     recordEssayAttempt,
+    logMistake,
     resolveMistake,
     updateFlashcardSRS,
     saveMarginNote,
     toggleTheme,
     resetAllProgress,
     selectCourse,
+    navigate,
     metrics: {
       completedICTCount,
       totalICTTopics: TOTAL_ICT_TOPICS,

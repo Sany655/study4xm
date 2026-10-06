@@ -42,6 +42,17 @@
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-full: 9999px;
+  /* Core Surface, Shadow & Border Tokens */
+  --bg-surface: #ffffff;
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --border-warm: #fecdd6;
+  --text-primary: #2e0d16;
+  --text-secondary: #4a232c;
+  --shadow-sm: 0 1px 3px rgba(136, 19, 55, 0.06);
+  --shadow-md: 0 4px 14px rgba(136, 19, 55, 0.08);
+  --shadow-lg: 0 10px 25px rgba(136, 19, 55, 0.12);
+
 }
 
 [data-theme="dark"] {
@@ -68,6 +79,16 @@
   --text-body: #fce7eb;
   --text-muted: #d4a5b0;
   --text-accent: #fb718f;
+  --bg-surface: #1c0a10;
+  --bg-main: #14050a;
+  --bg-card: #1c0a10;
+  --border-warm: #421623;
+  --text-primary: #fff0f3;
+  --text-secondary: #fce7eb;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6);
+
 }
 
 * {
@@ -2605,8 +2626,8 @@ body::before {
 }
 
 .year-selector-modal {
-  background: var(--bg-surface);
-  border: 2px solid var(--border-warm);
+  background: var(--page-bg, #ffffff);
+  border: 2px solid var(--rose-200, #fecdd6);
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 980px;
@@ -2628,8 +2649,8 @@ body::before {
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  border-bottom: 1.5px solid var(--border-warm);
-  background: var(--rose-50);
+  border-bottom: 1.5px solid var(--rose-200, #fecdd6);
+  background: var(--rose-50, #fff5f7);
 }
 
 .header-badge-group {
@@ -2683,7 +2704,7 @@ body::before {
 .modal-heading {
   font-size: 1.45rem;
   font-weight: 900;
-  color: var(--text-primary);
+  color: var(--text-ink, #2e0d16);
   margin: 0 0 6px 0;
   letter-spacing: -0.01em;
 }
@@ -2709,8 +2730,8 @@ body::before {
 }
 
 .year-tab-btn {
-  background: var(--bg-main);
-  border: 2px solid var(--border-warm);
+  background: var(--page-bg, #ffffff);
+  border: 1.5px solid var(--rose-200, #fecdd6);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   text-align: left;
@@ -2741,7 +2762,7 @@ body::before {
 .year-title-bn {
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--text-ink, #2e0d16);
 }
 
 .status-chip {
@@ -2823,8 +2844,8 @@ body::before {
 }
 
 .course-card {
-  background: var(--bg-main);
-  border: 2px solid var(--border-warm);
+  background: var(--page-bg, #ffffff);
+  border: 1.5px solid var(--rose-200, #fecdd6);
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
@@ -2832,6 +2853,7 @@ body::before {
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  box-shadow: 0 2px 8px rgba(136, 19, 55, 0.04);
 }
 
 .course-card:hover {
@@ -2847,8 +2869,9 @@ body::before {
 }
 
 .course-card.upcoming {
-  opacity: 0.85;
-  background: #fafafa;
+  opacity: 0.92;
+  background: var(--rose-50, #fff5f7);
+  border: 1.5px dashed var(--rose-300, #fda4b6);
 }
 
 .course-card-top {
@@ -2894,7 +2917,7 @@ body::before {
 .course-title-bn {
   font-size: 1.12rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--text-ink, #2e0d16);
   margin: 0 0 4px 0;
   line-height: 1.35;
 }
@@ -2920,7 +2943,7 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px dashed var(--border-warm);
+  border-top: 1px dashed var(--rose-200, #fecdd6);
   padding-top: 12px;
   margin-top: auto;
 }

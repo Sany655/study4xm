@@ -3,32 +3,42 @@
 // Handles structured syllabus explanations and prompt-based modifications
 // ==========================================================================
 
-const API_KEY_STORAGE_KEY = "study4xm_gemini_api_key";
-const CACHE_PREFIX = "study4xm_ai_cache_";
+const GEMINI_KEY_STORAGE = "study4xm_gemini_api_key";
+const OPENAI_KEY_STORAGE = "study4xm_openai_api_key";
+const ANTHROPIC_KEY_STORAGE = "study4xm_anthropic_api_key";
 
 export function getGeminiApiKey() {
-  try {
-    return localStorage.getItem(API_KEY_STORAGE_KEY) || "";
-  } catch {
-    return "";
-  }
+  try { return localStorage.getItem(GEMINI_KEY_STORAGE) || ""; } catch { return ""; }
+}
+export function getOpenAIApiKey() {
+  try { return localStorage.getItem(OPENAI_KEY_STORAGE) || ""; } catch { return ""; }
+}
+export function getAnthropicApiKey() {
+  try { return localStorage.getItem(ANTHROPIC_KEY_STORAGE) || ""; } catch { return ""; }
 }
 
-export function setGeminiApiKey(key) {
+export function setApiKeys({ gemini, openai, anthropic }) {
   try {
-    if (key && key.trim()) {
-      localStorage.setItem(API_KEY_STORAGE_KEY, key.trim());
-    } else {
-      localStorage.removeItem(API_KEY_STORAGE_KEY);
+    if (gemini !== undefined) {
+      if (gemini.trim()) localStorage.setItem(GEMINI_KEY_STORAGE, gemini.trim());
+      else localStorage.removeItem(GEMINI_KEY_STORAGE);
+    }
+    if (openai !== undefined) {
+      if (openai.trim()) localStorage.setItem(OPENAI_KEY_STORAGE, openai.trim());
+      else localStorage.removeItem(OPENAI_KEY_STORAGE);
+    }
+    if (anthropic !== undefined) {
+      if (anthropic.trim()) localStorage.setItem(ANTHROPIC_KEY_STORAGE, anthropic.trim());
+      else localStorage.removeItem(ANTHROPIC_KEY_STORAGE);
     }
     window.dispatchEvent(new Event('study4xm_apikey_changed'));
   } catch (e) {
-    console.error("Could not save API key to localStorage", e);
+    console.error("Could not save API keys to localStorage", e);
   }
 }
 
 export function hasCustomApiKey() {
-  return Boolean(getGeminiApiKey());
+  return Boolean(getGeminiApiKey() || getOpenAIApiKey() || getAnthropicApiKey());
 }
 
 // Generate a strictly defined, high-yield educational response for any subtopic
