@@ -18,10 +18,10 @@ export default function DifferenceTablesView({ onChime }) {
           ⚖️ তুলনামূলক পার্থক্য ছক জেনারেটর (Distinction Matrix)
         </span>
         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-ink)', margin: '6px 0 2px' }}>
-          বোর্ড পরীক্ষার সর্বাধিক গুরুত্বপূর্ণ ১৭টি পার্থক্য
+          নির্বাচিত ICT ও Economics তুলনামূলক ছক
         </h2>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          আইসিটি ও অর্থনীতির যেকোনো তুলনামূলক পার্থক্য ছক দেখতে নিচের তালিকা থেকে সিলেক্ট করুন।
+          এই পরিশিষ্টে বর্তমানে ICT ও Economics-এর তুলনামূলক ছক রয়েছে; অন্য কোর্সের জন্য এটি প্রযোজ্য নয়।
         </p>
       </div>
 

@@ -38,7 +38,7 @@ export const ACADEMIC_YEARS = [
         status: "available",
         totalChapters: 8,
         author: "ড. মো: জাহিদুল ইসলাম ও সহযোগী গবেষকবৃন্দ",
-        descriptionBn: "সমাজবিজ্ঞানের মূল তত্ত্ব, প্রতিষ্ঠাতা তাত্ত্বিকদের দর্শন, সামাজিক স্তরবিন্যাস ও আধুনিক গবেষণা পদ্ধতির ১০০/১০০ পূর্ণাঙ্গ ডিজিটাল মাস্টারবুক।",
+        descriptionBn: "সমাজবিজ্ঞানের মূল তত্ত্ব, প্রতিষ্ঠাতা তাত্ত্বিকদের দর্শন, সামাজিক স্তরবিন্যাস ও গবেষণা পদ্ধতির কোর্সভিত্তিক ডিজিটাল স্টাডি গাইড।",
         chapters: [
           { id: 1, titleBn: "অধ্যায় ১: সমাজবিজ্ঞানের সূচনা ও পরিধি", titleEn: "Introduction: Nature, Scope & Thinkers" },
           { id: 2, titleBn: "অধ্যায় ২: সমাজবিজ্ঞানের পদ্ধতি ও পরিমাপ", titleEn: "Methods and Measures in Sociology" },
@@ -206,7 +206,7 @@ export const ACADEMIC_YEARS = [
       },
       {
         id: "ict",
-        paperCode: "216601",
+        paperCode: "216602",
         titleBn: "তথ্য ও যোগাযোগ প্রযুক্তি ও ল্যাব",
         titleEn: "ICT and Computer System",
         type: "allied",

@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'mazharulalam26@gmail.com';
+    }
+
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'email',
+          'isPremium',
+          'referralCode',
+          'referredBy',
+          'referralProcessed',
+          'successfulReferrals',
+          'createdAt'
+        ])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.isPremium == false
+        && request.resource.data.referralCode is string
+        && request.resource.data.referralCode.matches('^[A-Z0-9]{6}$')
+        && request.resource.data.referralProcessed is bool
+        && request.resource.data.successfulReferrals == 0
+        && request.resource.data.createdAt is string
+        && (request.resource.data.referredBy == null || request.resource.data.referredBy is string);
+      allow update, delete: if false;
+    }
+
+    match /users/{username}/{document=**} {
+      allow read: if document.size() > 0;
+      allow write: if document.size() > 0 && request.auth != null;
+    }
+
+    match /premiumPayments/{paymentId} {
+      allow read, write: if false;
+    }
+
+    match /about/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /skills/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /projects/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /contact/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /messages/{document} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /education/{document} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /experience/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /channels/{channelId} {
+      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
+    }
+
+    match /content_queue/{docId} {
+      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
+    }
+
+    match /schedules/{schedId} {
+      allow read, write: if request.auth != null && resource.data.user_id == request.auth.uid;
+    }
+
+  }
+}

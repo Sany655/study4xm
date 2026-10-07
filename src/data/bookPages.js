@@ -16,7 +16,7 @@ export const COURSE_SYLLABUS_MAP = {
   'history-bd': { syllabus: HISTORY_BD_SYLLABUS, name: 'বাংলাদেশের ইতিহাস: ভাষা, সংস্কৃতি ও পরিচয়', code: '211501' },
   'political-science': { syllabus: POLITICAL_SCIENCE_SYLLABUS, name: 'রাষ্ট্রবিজ্ঞান পরিচিতি', code: '211909' },
   'economics': { syllabus: ECONOMICS_SYLLABUS, name: 'প্রিন্সিপলস অব ইকোনমিক্স', code: '212209' },
-  'ict': { syllabus: ICT_SYLLABUS, name: 'তথ্য ও যোগাযোগ প্রযুক্তি ও ল্যাব', code: '216601' }
+  'ict': { syllabus: ICT_SYLLABUS, name: 'তথ্য ও যোগাযোগ প্রযুক্তি ও ল্যাব', code: '216602' }
 };
 
 export function generatePlaceholderSyllabus(courseMeta) {
@@ -70,7 +70,7 @@ export function buildBookPagesForCourse(courseId = 'intro-sociology', yearId = 1
     title: courseMeta.titleBn,
     titleEn: courseMeta.titleEn,
     paperCode: courseMeta.paperCode,
-    subtitle: `জাতীয় বিশ্ববিদ্যালয় বিএসএস (অনার্স) সমাজবিজ্ঞান বিভাগ — ১০০/১০০ পূর্ণাঙ্গ ডিজিটাল মাস্টারবুক`,
+    subtitle: `জাতীয় বিশ্ববিদ্যালয় বিএসএস (অনার্স) সমাজবিজ্ঞান বিভাগ — ডিজিটাল কোর্স স্টাডি গাইড`,
     section: 'প্রচ্ছদ',
     courseId: courseId,
     yearId: yearId
@@ -168,8 +168,8 @@ export function buildBookPagesForCourse(courseId = 'intro-sociology', yearId = 1
     pageNumber: pageCounter++,
     type: 'exam',
     volume: 'পরিশিষ্ট ঘ',
-    title: 'টাইমারযুক্ত পূর্ণাঙ্গ বোর্ড পরীক্ষা হল',
-    subtitle: 'মডেল টেস্ট ও ১০০/১০০ পূর্ণাঙ্গ প্রস্তুতি সূচক',
+    title: 'ICT + Economics timed practice quiz',
+    subtitle: 'এই প্রশ্নব্যাংকটি বর্তমানে ICT ও Principles of Economics-এর জন্য',
     section: 'পরীক্ষা হল',
     courseId: courseId
   });
@@ -189,8 +189,8 @@ export function buildBookPagesForCourse(courseId = 'intro-sociology', yearId = 1
     type: 'refer',
     volume: 'পরিশিষ্ট চ',
     title: 'Refer & Earn',
-    subtitle: 'প্রিমিয়াম বৈশিষ্ট্য আনলক করতে বন্ধুদের আমন্ত্রণ জানান',
-    section: 'প্রিমিয়াম আনলক',
+    subtitle: 'Study4XM-এ বন্ধুদের আমন্ত্রণ ও রেফারেল কার্যকলাপ দেখুন',
+    section: 'রেফারেল',
     courseId: courseId
   });
 

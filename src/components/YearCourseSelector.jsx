@@ -68,9 +68,9 @@ export default function YearCourseSelector({
         {/* Title */}
         <div className="year-selector-title-bar">
           <div>
-            <h2 className="modal-heading">৪-বর্ষের পূর্ণাঙ্গ পাঠ্যক্রম ও কোর্স নির্বাচন</h2>
+            <h2 className="modal-heading">৪-বর্ষের কোর্স তালিকা</h2>
             <p className="modal-subheading">
-              আপনার শিক্ষাবর্ষ ও পাঠ্য বিষয় নির্বাচন করুন। প্রতিটি কোর্সে রয়েছে সম্পূর্ণ সিলেবাস ও ১০০/১০০ প্রস্তুতি।
+              প্রথম বর্ষের কোর্সগুলোতে সক্রিয় পাঠ রয়েছে। দ্বিতীয় থেকে চতুর্থ বর্ষ বর্তমানে রোডম্যাপ।
             </p>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function YearCourseSelector({
               <Sparkles size={20} color="var(--rose-700)" style={{ flexShrink: 0 }} />
               <div style={{ fontSize: '0.85rem', color: 'var(--rose-950)', lineHeight: 1.5 }}>
                 <strong>{upcomingNotice.titleBn} {upcomingNotice.paperCode ? `(কোড: ${upcomingNotice.paperCode})` : ''}</strong>: 
-                এই কোর্সটির পূর্ণাঙ্গ কনটেন্ট শীঘ্রই যুক্ত হচ্ছে। বর্তমানে <strong>১ম বর্ষের সকল কোর্স</strong> সম্পূর্ণরূপে সক্রিয় ও অধ্যয়নযোগ্য।
+                এই কোর্সটির পাঠ এখনো সক্রিয় নয়। বর্তমানে <strong>১ম বর্ষের আটটি কোর্সে</strong> পাঠের ডেটা যুক্ত আছে।
               </div>
             </div>
             <button

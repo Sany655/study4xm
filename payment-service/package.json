@@ -1,0 +1,12 @@
+{
+  "name": "study4xm-payment-service",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "tisha-exams-react": "file:.."
+  }
+}

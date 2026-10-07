@@ -152,12 +152,12 @@ export default function ExamSimulatorView({
           {is100Mode ? '👑' : '⏱'}
         </div>
         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-ink)', marginBottom: '8px' }}>
-          {is100Mode ? '১০০/১০০ মাস্টার বোর্ড পরীক্ষা চ্যালেঞ্জ' : 'টাইমারযুক্ত পূর্ণাঙ্গ বোর্ড মডেল টেস্ট'}
+          {is100Mode ? 'ICT + Economics mixed mock exam' : 'ICT + Economics timed quiz'}
         </h2>
         <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
           {is100Mode 
-            ? "আইসিটি ও অর্থনীতির ১২টি মিশ্রিত বোর্ড প্রশ্ন, কঠোর ১৫ মিনিটের কাউন্টডাউন এবং পূর্ণাঙ্গ প্রস্তুতি সূচক।"
-            : "বাস্তব পরীক্ষার সময়সীমা মেনে আইসিটি ও অর্থনীতি বিষয়ের সমন্বয়ে ৮টি গুরুত্বপূর্ণ বহুনির্বাচনী প্রশ্ন অনুশীলন করুন।"}
+            ? "এই মিশ্র পরীক্ষাটি ICT ও Principles of Economics প্রশ্নব্যাংক থেকে ১২টি MCQ নেয়; এটি অন্য কোর্সের জন্য আলাদা প্রশ্নব্যাংক নয়।"
+            : "ICT ও Principles of Economics থেকে ৮টি MCQ অনুশীলন করুন. এই quizটি Sociology বা অন্য কোর্সভিত্তিক নয়।"}
         </p>
         <button className="btn btn-primary" onClick={startNewExam}>
           🚀 এখনই সময়ভিত্তিক পরীক্ষা শুরু করুন
@@ -173,8 +173,8 @@ export default function ExamSimulatorView({
           <span style={{ fontSize: '3rem', display: 'block', marginBottom: '6px' }}>
             {scoreReport.scorePct >= 80 ? '🏆' : '📚'}
           </span>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-ink)' }}>বোর্ড পরীক্ষা মূল্যায়ন রিপোর্ট</h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>১০০/১০০ অর্জনের জন্য ফলাফল ও রিভিশন নির্দেশিকা</p>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-ink)' }}>Practice quiz report</h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>ICT + Economics practice results and revision suggestions</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '28px' }}>

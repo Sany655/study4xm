@@ -16,7 +16,6 @@ import ReferAndEarnView from './ReferAndEarnView';
 
 import GuidedTour from './GuidedTour';
 import AiSettingsModal from './AiSettingsModal';
-import PremiumUnlockModal from './PremiumUnlockModal';
 import { useAuth } from '../contexts/AuthContext';
 
 import { 
@@ -97,8 +96,7 @@ export default function BookLayout({ appState, audio }) {
   // ────────────────────────────────────────────────────────────────────────────
 
   const [isYearModalOpen, setIsYearModalOpen] = useState(false);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const { userData, upgradeToPremium } = useAuth() || {}; // Optional fallback if not wrapped
+  const { userData } = useAuth() || {}; // Optional fallback if not wrapped
 
   // Persist current page in localStorage
   const [currentPage, setCurrentPage] = useState(() => {
@@ -987,13 +985,7 @@ export default function BookLayout({ appState, audio }) {
                 <p style={{ color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>
                   The Offline AI-Guided Exam Simulator is a premium feature. Unlock it by referring friends or upgrading!
                 </p>
-                <button 
-                  onClick={() => setIsPremiumModalOpen(true)}
-                  className="btn btn-primary"
-                  style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: 600 }}
-                >
-                  Unlock Premium Now
-                </button>
+                <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Premium access is required to open this section.</p>
               </div>
             )}
           </div>
@@ -1259,18 +1251,6 @@ export default function BookLayout({ appState, audio }) {
         isOpen={isAiSettingsOpen}
         onClose={() => setIsAiSettingsOpen(false)}
         onChime={playChime}
-      />
-
-      {/* Premium Unlock Modal */}
-      <PremiumUnlockModal
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-        userData={userData}
-        onPaymentSuccess={async (provider) => {
-          if (userData && !userData.isPremium && upgradeToPremium) {
-            await upgradeToPremium();
-          }
-        }}
       />
 
       {/* 4-Year Curriculum & Course Selector Shelf Modal */}

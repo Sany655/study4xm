@@ -59,7 +59,7 @@ function generateOfflineExplanation(subtopic, subject, unitTitle, customPrompt =
     } else if (p.includes("বুলেট") || p.includes("৫ নম্বর") || p.includes("পয়েন্ট")) {
       promptAnswer = `**বোর্ড পরীক্ষায় ৫ নম্বরের ৪টি আবশ্যিক বুলেট পয়েন্ট:**\n1. **সংজ্ঞা ও পারিভাষিক সূচনা:** ${subtopic.coreConcept}\n2. **অত্যাবশ্যকীয় উপাদানসমূহ:** ${kwList}\n3. **বাস্তব প্রয়োগ ও উপযোগিতা:** নির্ভুল ফলাফল পাওয়া, অপচয় রোধ করা এবং দ্রুত ও সঠিক সিদ্ধান্ত গ্রহণে সহায়তা করা।\n4. **বোর্ড সতর্কবার্তা:** উত্তরের ভেতরে আবশ্যকীয় ইংরেজি টার্মিনোলজি আন্ডারলাইন করে দিলে পরীক্ষক সর্বোচ্চ নম্বর প্রদান করেন।`;
     } else if (p.includes("mcq") || p.includes("প্রশ্ন")) {
-      promptAnswer = `**বোর্ড স্ট্যান্ডার্ড ২টি উচ্চফলনশীল MCQ ও সমাধান:**\n\n1. **প্রশ্ন:** ${subtopic.title}-এর ক্ষেত্রে নিচের কোনটি সবচেয়ে সঠিক?\n   - ক) এটি একটি বিচ্ছিন্ন প্রক্রিয়া\n   - খ) ${subtopic.coreConcept.slice(0, 50)}... (সঠিক উত্তর)\n   - গ) এর কোনো ব্যবহারিক উপযোগ নেই\n   - ঘ) কোনোটিই নয়\n   *সঠিক উত্তর:* খ | *ব্যাখ্যা:* এনসিটিবি পাঠ্যবই অনুযায়ী এটি মূল কারিগরি রূপ।\n\n2. **প্রশ্ন:** নিচের কোন পরিভাষাটি এর সাথে সরাসরি সম্পৃক্ত?\n   - ক) ${subtopic.keywords?.[0] || "প্রধান উপাদান"} (সঠিক উত্তর)\n   - খ) অপ্রাসঙ্গিক চলক\n   - গ) স্থায়ী অচলাবস্থা\n   - ঘ) কোনোটিই নয়\n   *সঠিক উত্তর:* ক | *ব্যাখ্যা:* এটি এই টপিকের অপরিহার্য টার্মিনোলজি।`;
+      promptAnswer = `**অনুশীলনের জন্য ২টি MCQ ও সমাধান:**\n\n1. **প্রশ্ন:** ${subtopic.title}-এর ক্ষেত্রে নিচের কোনটি সবচেয়ে সঠিক?\n   - ক) এটি একটি বিচ্ছিন্ন প্রক্রিয়া\n   - খ) ${subtopic.coreConcept.slice(0, 50)}... (সঠিক উত্তর)\n   - গ) এর কোনো ব্যবহারিক উপযোগ নেই\n   - ঘ) কোনোটিই নয়\n   *সঠিক উত্তর:* খ | *ব্যাখ্যা:* পাঠের মূল ধারণার সাথে মিলিয়ে উত্তরটি যাচাই করুন।\n\n2. **প্রশ্ন:** নিচের কোন পরিভাষাটি এর সাথে সরাসরি সম্পৃক্ত?\n   - ক) ${subtopic.keywords?.[0] || "প্রধান উপাদান"} (সঠিক উত্তর)\n   - খ) অপ্রাসঙ্গিক চলক\n   - গ) স্থায়ী অচলাবস্থা\n   - ঘ) কোনোটিই নয়\n   *সঠিক উত্তর:* ক | *ব্যাখ্যা:* এটি এই টপিকের অপরিহার্য টার্মিনোলজি।`;
     } else if (p.includes("উদাহরণ") || p.includes("example")) {
       promptAnswer = `**বাস্তব জীবনের প্রাসঙ্গিক কেস স্টাডি:**\nবাংলাদেশে মোবাইল ফিন্যান্সিয়াল সার্ভিস (বিকাশ/নগদ) অথবা ডিজিটাল জাতীয় পরিচয়পত্র (NID) ডেটাবেজের দিকে তাকালে এর প্রত্যক্ষ ব্যবহার দেখা যায়। গ্রাহক যখন লেনদেনের নির্দেশ দেন, সেন্ট্রাল সার্ভার তা নিমেষেই প্রক্রিয়াজাত করে উভয় পক্ষের কাছে কনফার্মেশন পাঠিয়ে লেজার আপডেট করে।`;
     }
@@ -73,7 +73,7 @@ function generateOfflineExplanation(subtopic, subject, unitTitle, customPrompt =
 
 ${subtopic.coreConcept}
 
-জাতীয় শিক্ষাক্রম (NCTB) অনুযায়ী এটি বোর্ড পরীক্ষায় ১০০/১০০ অর্জনের জন্য একটি অতি-গুরুত্বপূর্ণ ভিত্তিপ্রস্তর। এর স্পষ্ট উপলব্ধি থাকলে বহুনির্বাচনী ও সৃজনশীল উভয় বিভাগেই পূর্ণ নম্বর পাওয়া নিশ্চিত হয়।
+এই ধারণাটি বুঝে নিন এবং কোর্সের সিলেবাস ও ক্লাস নোটের সাথে মিলিয়ে অনুশীলন করুন। নম্বর নিশ্চিত করার কোনো উপায় নেই; নিয়মিত অনুশীলন প্রস্তুতিতে সহায়তা করে।
 
 ### 🔑 ২. আবশ্যকীয় ইংরেজি ও পারিভাষিক শব্দ (Key Technical Terminology)
 
@@ -125,8 +125,9 @@ export async function fetchTopicAiExplanation({
   }
 
 // Construct strictly defined system prompt for Gemini
-  const systemInstruction = `You are an elite academic examiner and senior curriculum specialist for the Bangladesh NCTB National Curriculum for HSC/Board level ICT and Economics (আইসিটি ও অর্থনীতি).
-Target: Help the student master the concept, retain essential English technical terms, and write flawless board exam answers targeting 100/100 marks.
+  const systemInstruction = `You are an academic study assistant for National University of Bangladesh BSS Honours first-year courses.
+  Use only the provided subject, lesson, syllabus context, and keywords. Do not assume this is an NCTB HSC course; do not invent course-specific facts, citations, or guaranteed exam marks.
+  Help the student understand the concept, retain useful terminology, and practice clear course-appropriate answers.
 Subject: ${subject}
 Unit / Chapter: ${unitTitle}
 Subtopic: ${subtopic.title} (${subtopic.titleEn || ""})
@@ -176,7 +177,7 @@ Please adapt the explanation to fulfill this request thoroughly, and append a de
 **আপনার প্রশ্ন/অনুরোধ:** "${customPrompt.trim()}"
 
 [Your detailed, academically precise response fulfilling the student's request.]`
-    : `Generate the complete, strictly formatted 6-section NCTB board exam guide for the subtopic "${subtopic.title}". Remember: follow all spacing and heading rules strictly.`;
+    : `Generate a study guide for the subtopic "${subtopic.title}" using only the supplied course context. Follow the requested structure and spacing rules.`;
 
   try {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;

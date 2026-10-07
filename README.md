@@ -1,17 +1,37 @@
-# 📚 পরীক্ষা প্রস্তুতি ও ডিজিটাল মাস্টারবুক (Exam Prep & Digital Masterbook)
+
+### Items to verify against the official NU syllabus
+
+- The registry assigns course code `212005` to both Social History and Sociology of Marriage.
+- Year 1 is listed as 30 total credits, while its eight registered courses each show 4 credits (32 combined).
+- The ICT course code is `216602`; verify this against the current official department outline before changing it.
+# Study4XM | National University Study Platform
 
 ## 📖 সারসংক্ষেপ (Overview)
 
-এই প্ল্যাটফর্মটি বাংলাদেশের জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) অনুমোদিত **তথ্য ও যোগাযোগ প্রযুক্তি (ICT)** এবং **অর্থনীতি ১ম ও ২য় পত্র (Economics)** বিষয়ের পূর্ণাঙ্গ ডিজিটাল মাস্টারবুক। গতানুগতিক স্ট্যাটিক ওয়েব পেজের পরিবর্তে এটি একটি বাস্তবসম্মত ডিজিটাল বইয়ের অভিজ্ঞতা প্রদান করে, যেখানে রয়েছে থ্রি-ডি পেজ ফ্লিপ, ড্র্যাগ/সোয়াইপ নেভিগেশন, অডিও টিউটর, ৫-লেভেল শিক্ষণ পদ্ধতি, ইন্টারঅ্যাক্টিভ সিমুলেটর এবং অফলাইন-ফার্স্ট লোকাল স্টোরেজ ট্র্যাকিং।
+Study4XM is being built as a premium study platform for **National University of Bangladesh** learners. It is designed to grow across programs; the only active lesson pack today is **BSS Honours Sociology, Year 1**, with the eight subjects listed below. Other departments and years are planned, not currently available or included in the purchase. Study4XM is not an NCTB HSC ICT/Economics app.
 
 <img width="425" height="1326" alt="image" src="https://github.com/user-attachments/assets/9e42a326-7d98-4bfb-840a-d5e6ed26242a" />
 
-### জাতীয় শিক্ষাক্রম (NCTB) অনুযায়ী আইসিটি ও অর্থনীতি ১০০/১০০ পূর্ণাঙ্গ প্রস্তুতি প্ল্যাটফর্ম
+### Current course coverage
+
+| Year | Subject | Current status |
+| --- | --- | --- |
+| 1st | Introduction to Sociology | Active lesson data |
+| 1st | Social History and World Civilization | Active lesson data |
+| 1st | Sociology of Marriage and Family | Active lesson data |
+| 1st | Social Problems and Issues | Active lesson data |
+| 1st | History of Bangladesh: Language and Culture | Active lesson data |
+| 1st | Introduction to Political Science | Active lesson data |
+| 1st | Principles of Economics | Active lesson data |
+| 1st | ICT and Computer System / Lab | Active lesson data |
+| 2nd–4th | Sociology Honours roadmap courses | Catalog/roadmap only; lesson content is not active |
+
+Course metadata lives in `src/data/curriculumRegistry.js`; `src/data/bookPages.js` maps the eight first-year course IDs to their lesson datasets. The requirements folder contains course-outline/reference scans and the written hierarchy requirement: `subject -> chapters -> lessons`. New programs should be added only after their syllabus and lesson datasets are ready; the current purchase covers only the active Sociology Year 1 pack.
 
 [![Live App](https://img.shields.io/badge/Live_Site-study4xm.web.app-e11d48?style=for-the-badge&logo=firebase)](https://study4xm.web.app)
-[![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![National Curriculum](https://img.shields.io/badge/Curriculum-NCTB_Bangladesh-006a4e?style=for-the-badge)](https://study4xm.web.app)
+[![Curriculum](https://img.shields.io/badge/Curriculum-NU_BSS_Sociology-006a4e?style=for-the-badge)](https://study4xm.web.app)
 
 ---
 
@@ -26,44 +46,23 @@
 
 ```mermaid
 graph TD
-    A["📘 Digital Masterbook (BOOK_PAGES)"] --> B["💻 ১ম খণ্ড: তথ্য ও যোগাযোগ প্রযুক্তি (ICT)"]
-    A --> C["📈 ২য় খণ্ড: অর্থনীতি ১ম ও ২য় পত্র (Economics)"]
-    A --> D["📑 পরিশিষ্ট ও বিশেষ শাখা (Appendices)"]
-
-    B --> B1["অধ্যায় / ইউনিট ১: কম্পিউটার সিস্টেম"]
-    B --> B2["অধ্যায় / ইউনিট ৪: স্প্রেডশিট এক্সেল"]
-    B --> B3["অধ্যায় / ইউনিট ৭: ওএসআই ৭-লেয়ার"]
-    B --> B4["... মোট ৯টি ইউনিট"]
-
-    B1 --> L1["পাঠ / লেসন ১.১: আইসিটির সংজ্ঞা"]
-    B1 --> L2["পাঠ / লেসন ১.২: উপাত্ত বনাম তথ্য"]
-    B4 --> L9["পাঠ / লেসন ৯.১: রোবোটিক্স ও এআই"]
-
-    C --> C1["অধ্যায় ১: মৌলিক অর্থনৈতিক সমস্যা"]
-    C --> C2["অধ্যায় ২: চাহিদা ও যোগান"]
-    C --> C3["অধ্যায় ৬: জাতীয় আয় (GDP/GNI)"]
-    C --> C4["... মোট ১০টি অধ্যায়"]
-
-    C3 --> LC1["পাঠ ৬.১: জিডিপির পরিমাপ পদ্ধতি"]
-    C3 --> LC2["পাঠ ৬.২: নিট জাতীয় আয় (NNP)"]
-
-    D --> D1["পরিশিষ্ট ক: ১৭টি গুরুত্বপূর্ণ পার্থক্য ছক"]
-    D --> D2["পরিশিষ্ট খ: স্পেসড রেপিটিশন ফ্ল্যাশকার্ড"]
-    D --> D3["পরিশিষ্ট গ: সৃজনশীল খাতা ও রাইটিং ডেস্ক"]
-    D --> D4["পরিশিষ্ট ঘ: টাইমারযুক্ত পূর্ণাঙ্গ বোর্ড পরীক্ষা হল"]
-    D --> D5["পরিশিষ্ট ঙ: ভুল সংশোধনী খাতা (Mistake Notebook)"]
+  A["BSS Honours Sociology"] --> Y1["Year 1: active lesson library"]
+  A --> Y2["Years 2–4: roadmap"]
+  Y1 --> C["8 registered subjects"]
+  C --> H["Chapters / Units"]
+  H --> L["Lessons / Topics"]
 ```
 
 ---
 
 ## 🎯 ৫-লেভেল শিক্ষণ পদ্ধতি (5-Level Learning System per Lesson)
 
-প্রতিটি পাঠ বা লেসনের বিষয়বস্তু বোর্ড পরীক্ষায় পূর্ণ নম্বর (১০০/১০০) অর্জনের লক্ষ্যে ৫টি ধাপে সাজানো:
+প্রথম বর্ষের lesson data-তে ধারণা, টার্ম, উদাহরণ, লিখিত অনুশীলন ও কুইজের মতো ক্ষেত্র থাকতে পারে। সব কোর্স/পাঠে প্রতিটি ক্ষেত্র সমানভাবে নেই এবং কোনো ফলাফল বা নম্বর নিশ্চিত করা হয় না:
 
 1. **লেভেল ১: প্রাথমিক ধারণা ও মূল উপলব্ধি (Core Concept & Syllabus Outline)**
    * সহজ বাংলায় মূল ধারণার রূপরেখা (`simpleIdea`).
    * অতি সহজ কথোপকথনমূলক ব্যাখ্যা (`simplerVersion`) টগল বাটন সহ।
-   * জাতীয় শিক্ষাক্রম অনুযায়ী মূল পাঠ্যবইয়ের বিশদ রূপরেখা (`banglaExplanation`).
+  * কোর্স-নির্দিষ্ট ব্যাখ্যা (`banglaExplanation`).
 2. **লেভেল ২: পরীক্ষার জন্য আবশ্যকীয় শব্দকোষ (Key Terminology & Keywords)**
    * পারিভাষিক শব্দ ও নির্ভুল সংজ্ঞার গ্রিড (`keywords`: `term` + `def`).
 3. **লেভেল ৩: প্রযুক্তিগত কার্যপদ্ধতি ও বাস্তব উদাহরণ (Technical Mechanics & Labs)**
@@ -71,9 +70,7 @@ graph TD
    * বাস্তব জীবনের প্রাসঙ্গিক উদাহরণ (`realLifeExample`).
    * টপিক-ভিত্তিক লাইভ ইন্টারঅ্যাক্টিভ ল্যাব (যেমন: এক্সেল রানার, ওএসআই লেয়ার, চাহিদা-যোগান ক্যানভাস)।
 4. **লেভেল ৪: বোর্ড পরীক্ষার লিখিত উত্তরের কাঠামো (Board Exam Answer Templates)**
-   * ২ নম্বরের অনুধাবনমূলক আদর্শ উত্তর (`twoMark`).
-   * ৫/৩ নম্বরের প্রয়োগমূলক উত্তর (`fiveMark`).
-   * ১০/৪ নম্বরের উচ্চতর দক্ষতামূলক পূর্ণাঙ্গ সৃজনশীল উত্তর (`tenMark`).
+  * `twoMark`, `fiveMark`, `tenMark`-এর মতো লিখিত অনুশীলন, যেখানে ডেটায় দেওয়া আছে।
 5. **লেভেল ৫: তাৎক্ষণিক যাচাই ও সক্রিয় স্মরণ (Assessment & Active Recall)**
    * অবজেক্টিভ চেকপয়েন্ট কুইজ (`mcqs`) সঠিক/ভুল ব্যাখ্যা সহ।
    * না দেখে নিজের ভাষায় লেখার অ্যাক্টিভ রিকল নোটপ্যাড (`notepad-textarea`).
@@ -122,15 +119,15 @@ tisha-exams/
 │   ├── App.jsx                    # মূল রুট কনটেইনার ও থিম সিঙ্ক
 │   ├── index.css                  # গ্লোবাল সিএসএস, ডার্ক মোড প্যালেট ও বুক স্টাইলিং
 │   │
-│   ├── data/                      # 📚 ডেটা লেয়ার (Subject -> Chapters -> Lessons)
-│   │   ├── bookPages.js           # মাস্টার পেজ অ্যারে (১ থেকে ২৮ পৃষ্ঠা পর্যন্ত ডেক বিল্ডার)
-│   │   ├── ictData.js             # ১ম খণ্ড: আইসিটি ৯টি ইউনিটের ডেটা ও প্রশ্নব্যাংক
-│   │   ├── economicsData.js       # ২য় খণ্ড: অর্থনীতি ১০টি অধ্যায়ের ডেটা ও সমাধান
-│   │   └── differencesData.js     # ১৭টি হাই-ইল্ড বোর্ড পার্থক্য ম্যাট্রিক্স
+│   ├── data/                      # Course registry and subject -> chapters -> lessons data
+│   │   ├── curriculumRegistry.js  # 4-year course catalog and active/roadmap status
+│   │   ├── bookPages.js           # Maps the 8 active first-year courses to lesson data
+│   │   ├── *Data.js                # Subject datasets for sociology, history, family, politics, economics, ICT
+│   │   └── differenceData.js      # Shared ICT/Economics comparison tables
 │   │
 │   ├── hooks/                     # ⚙️ স্টেট ও অডিও কন্ট্রোলার
 │   │   ├── useAppState.js         # লোকাল স্টোরেজ সিঙ্ক, অগ্রগতি ট্র্যাকার, কুইজ ও মিস্টেক হ্যান্ডলার
-│   │   └── useAudio.js            # Web Audio API সিন্থেসাইজার ও Web Speech TTS
+│   │   └── useAudioTTS.js         # Web Audio API and Web Speech text-to-speech
 │   │
 │   └── components/                # 🧩 ভিউ ও ইন্টারঅ্যাক্টিভ উপাদানসমূহ
 │       ├── BookLayout.jsx         # মূল বই ফ্রেমওয়ার্ক, হেডার, বটম ডক ও ড্র্যাগ/সোয়াইপ ইঞ্জিন
@@ -158,7 +155,7 @@ tisha-exams/
 
 ### ১. নতুন পাঠ/লেসন যুক্ত করা (Adding a New Lesson)
 
-একটি নতুন লেসন যুক্ত করতে [`src/data/ictData.js`](file:///c:/All/works/tisha-exams/src/data/ictData.js) অথবা [`src/data/economicsData.js`](file:///c:/All/works/tisha-exams/src/data/economicsData.js)-এর সংশ্লিষ্ট অধ্যায়ের `topics` বা `concepts` অ্যারেতে নিচের স্কিমায় অবজেক্ট যুক্ত করুন:
+প্রথমে `src/data/curriculumRegistry.js` থেকে course ID খুঁজুন, তারপর সংশ্লিষ্ট dataset module-এ ওই course-এর schema অনুসারে chapter/topic যোগ করুন. Active course IDs and source modules are mapped in [`src/data/bookPages.js`](src/data/bookPages.js). ICT and Economics use a different schema from the Sociology datasets, so follow the nearby examples in the matching module. The lesson fields below are illustrative, not required on every lesson:
 
 ```javascript
 {
@@ -193,31 +190,15 @@ tisha-exams/
 }
 ```
 
-> **নোট**: ডেটা যুক্ত করার সাথে সাথেই [`src/data/bookPages.js`](file:///c:/All/works/tisha-exams/src/data/bookPages.js)-এর লুপ স্বয়ংক্রিয়ভাবে নতুন পৃষ্ঠা নম্বর অ্যাসাইন করে ফেলবে এবং সূচিপত্র ও পেজিনেশনে আপডেট হয়ে যাবে।
+> **নোট**: `bookPages.js` builds pages from each mapped course's syllabus data. A course without a mapping currently gets generated placeholder lessons, so do not mark it active until real lesson data is mapped and checked.
 
 ---
 
-### ২. নতুন বিষয় যুক্ত করা (Adding a New Subject, e.g., Physics or Accounting)
+### ২. নতুন বিষয় বা কোর্স যুক্ত করা (Adding a Course)
 
-1. `src/data/` ফোল্ডারে নতুন ফাইল তৈরি করুন (যেমন: `physicsData.js`)।
-2. [`src/data/bookPages.js`](file:///c:/All/works/tisha-exams/src/data/bookPages.js)-এ নতুন সিলেবাস ইমপোর্ট করে `BOOK_PAGES` লুপে যোগ করুন:
-   ```javascript
-   PHYSICS_SYLLABUS.forEach(unit => {
-     unit.topics.forEach(topic => {
-       BOOK_PAGES.push({
-         pageNumber: pageCounter++,
-         type: 'chapter',
-         subject: 'Physics',
-         volume: '৩য় খণ্ড: পদার্থবিজ্ঞান',
-         chapterTitle: unit.unitTitle,
-         topic: topic,
-         priority: topic.priority || 5,
-         section: `অধ্যায় ${unit.unitId}`
-       });
-     });
-   });
-   ```
-3. [`src/components/TableOfContents.jsx`](file:///c:/All/works/tisha-exams/src/components/TableOfContents.jsx) এবং [`src/components/BookLayout.jsx`](file:///c:/All/works/tisha-exams/src/components/BookLayout.jsx)-এ নতুন বিষয়ের সুইচ বোতাম যোগ করুন।
+1. Add the course metadata and honest status to `ACADEMIC_YEARS` in `src/data/curriculumRegistry.js`.
+2. Add its syllabus module to `src/data/bookPages.js` and ensure the content uses a schema that `BookPage.jsx` supports.
+3. Confirm the course selector, syllabus pages, practice content, and any course-specific exam tools before marking the course active.
 
 ---
 
@@ -264,6 +245,16 @@ npx firebase deploy --only hosting:study4xm --project portfolio-sany
 ```
 সরাসরি লাইভ ইউআরএল: **`https://study4xm.web.app`** এ পরিবর্তন প্রতিফলিত হবে।
 
+### Premium payment setup
+
+The public premium page uses Firebase Authentication. AamarPay checkout and referral endpoints are in the standalone Vercel project under [`payment-service/`](./payment-service/README.md). The service fixes the price server-side, stores a pending transaction, verifies it with AamarPay, and only then grants Premium through Firebase Admin. Stripe and Google Play Billing remain disabled until their own server-side purchase verification flows are implemented.
+
+Deploy `payment-service/` to Vercel with that folder set as the project root. Configure the Firebase service-account variables, AamarPay credentials, `AAMARPAY_MODE=sandbox`, `PUBLIC_APP_URL`, and the stable `PAYMENT_SERVICE_URL` in Vercel. Keep all credentials in Vercel environment settings; never put them in Vite variables or client code. Detailed environment variable names and sandbox-to-live steps are in [`payment-service/README.md`](./payment-service/README.md).
+
+After deploying the API, set `VITE_PAYMENT_CHECKOUT_API=https://<your-vercel-domain>/api/create` in the frontend build environment, then rebuild and deploy Hosting. This setting is intentionally empty in `.env.example`, so payment stays unavailable until a real API URL is configured. Test sandbox success, failure, cancellation, and status polling before enabling live credentials. AamarPay must issue/approve live merchant credentials before `AAMARPAY_MODE` is changed to `live`.
+
+The payment service handles referrals server-side because the Firestore rules are owner-only for user documents. Keep those rules in place so clients cannot grant themselves Premium; the Firebase Admin payment service is the Premium grant path.
+
 ---
 
 ## 🎨 থিম ও স্টাইলিং সিস্টেম (Warm Rose Academic Aesthetic)
@@ -280,4 +271,4 @@ npx firebase deploy --only hosting:study4xm --project portfolio-sany
 
 ## 👨‍💻 অবদান ও লাইসেন্স (License & Maintenance)
 
-প্রজেক্টটি শিক্ষার্থীবান্ধব ও জাতীয় শিক্ষাক্রমের পূর্ণাঙ্গ সহায়িকা হিসেবে তৈরি করা হয়েছে। কোনো নতুন অধ্যায়, অনুশীলন প্রশ্ন বা ইন্টারঅ্যাক্টিভ ভিজ্যুয়ালাইজার যুক্ত করতে চাইলে পিআর (Pull Request) পাঠাতে পারেন।
+প্রজেক্টটি NU BSS Honours Sociology-র প্রথম বর্ষের কোর্স কনটেন্টের জন্য তৈরি। নতুন অধ্যায়, অনুশীলন প্রশ্ন বা ইন্টারঅ্যাক্টিভ ভিজ্যুয়ালাইজার যোগ করার আগে সংশ্লিষ্ট অফিসিয়াল কোর্স সিলেবাসের সাথে মিলিয়ে নিন।

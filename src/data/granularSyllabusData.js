@@ -1,5 +1,5 @@
 // ==========================================================================
-// GRANULAR SYLLABUS DATA (NCTB ICT Units 1-9 & Economics Topics 1-10)
+// GRANULAR COURSE OUTLINES (NU BSS Honours Sociology first-year ICT and Economics)
 // Extracted from requirements/tisha study.docx & National Curriculum
 // ==========================================================================
 

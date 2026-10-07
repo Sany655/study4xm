@@ -224,7 +224,7 @@ export default function BookPage({
             <p className="book-body-text">{topic.simpleIdea}</p>
             
             <div className="book-callout-bangla">
-              <span className="callout-header">🇧🇩 জাতীয় শিক্ষাক্রম অনুযায়ী পাঠ্যবইয়ের বিশদ রূপরেখা</span>
+              <span className="callout-header">🇧🇩 কোর্স সিলেবাস অনুযায়ী পাঠের বিশদ রূপরেখা</span>
               <p>{topic.banglaExplanation}</p>
             </div>
           </div>

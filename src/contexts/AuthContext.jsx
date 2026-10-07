@@ -10,13 +10,9 @@ import {
   doc, 
   setDoc, 
   getDoc, 
-  collection, 
-  query, 
-  where, 
-  getDocs,
-  updateDoc,
-  increment
+  onSnapshot
 } from 'firebase/firestore';
+import { paymentService } from '../services/paymentService';
 
 const AuthContext = createContext();
 
@@ -42,6 +38,7 @@ export function AuthProvider({ children }) {
   async function signup(email, password, referredByCode = '') {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    const normalizedReferralCode = String(referredByCode || '').trim().toUpperCase();
 
     // Generate unique referral code for the new user
     let newReferralCode = generateReferralCode();
@@ -51,7 +48,8 @@ export function AuthProvider({ children }) {
       email: user.email,
       isPremium: false,
       referralCode: newReferralCode,
-      referredBy: referredByCode || null,
+      referredBy: normalizedReferralCode || null,
+      referralProcessed: !normalizedReferralCode,
       successfulReferrals: 0,
       createdAt: new Date().toISOString()
     };
@@ -59,8 +57,8 @@ export function AuthProvider({ children }) {
     await setDoc(doc(db, 'users', user.uid), userDocData);
 
     // If referredBy is provided, we need to handle the referral logic
-    if (referredByCode) {
-      await processReferral(referredByCode);
+    if (normalizedReferralCode) {
+      await processReferral(normalizedReferralCode);
     }
 
     return userCredential;
@@ -68,30 +66,7 @@ export function AuthProvider({ children }) {
 
   async function processReferral(referredByCode) {
     try {
-      // Find the user who owns this referral code
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('referralCode', '==', referredByCode));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const referrerDoc = querySnapshot.docs[0];
-        const referrerRef = referrerDoc.ref;
-        const referrerData = referrerDoc.data();
-
-        // Increment successfulReferrals
-        const newReferralsCount = (referrerData.successfulReferrals || 0) + 1;
-        
-        const updateData = {
-          successfulReferrals: increment(1)
-        };
-
-        // If they hit 3, unlock Premium
-        if (newReferralsCount >= 3 && !referrerData.isPremium) {
-          updateData.isPremium = true;
-        }
-
-        await updateDoc(referrerRef, updateData);
-      }
+      await paymentService.processReferral(referredByCode);
     } catch (error) {
       console.error("Error processing referral: ", error);
     }
@@ -105,43 +80,53 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
+  async function refreshUserData(user = currentUser) {
+    if (!user) {
+      setUserData(null);
+      return null;
+    }
+
+    const docSnap = await getDoc(doc(db, 'users', user.uid));
+    const data = docSnap.exists() ? docSnap.data() : null;
+    setUserData(data);
+    return data;
+  }
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeUserData;
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      unsubscribeUserData?.();
       setCurrentUser(user);
-      if (user) {
-        // Fetch custom user data from Firestore (isPremium, etc)
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserData(docSnap.data());
-        }
-      } else {
-        setUserData(null);
+      setUserData(null);
+      if (!user) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      setLoading(true);
+      unsubscribeUserData = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+        if (auth.currentUser?.uid !== user.uid) return;
+        setUserData(docSnap.exists() ? docSnap.data() : null);
+        setLoading(false);
+      }, (error) => {
+        console.error('Could not load the signed-in account:', error);
+        setLoading(false);
+      });
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      unsubscribeUserData?.();
+    };
   }, []);
-
-  async function upgradeToPremium() {
-    if (!currentUser) return;
-    try {
-      const userRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(userRef, { isPremium: true });
-      setUserData(prev => ({ ...prev, isPremium: true }));
-    } catch (err) {
-      console.error("Error upgrading to premium: ", err);
-    }
-  }
 
   const value = {
     currentUser,
     userData,
+    refreshUserData,
     signup,
     login,
-    logout,
-    upgradeToPremium
+    logout
   };
 
   return (

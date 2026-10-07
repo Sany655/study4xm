@@ -116,10 +116,10 @@ export default function ReferAndEarnView() {
 
       <div style={{ textAlign: 'center', marginTop: '20px', marginBottom: '30px' }}>
         <h1 style={{ color: 'var(--text-ink)', fontSize: '2rem', marginBottom: '10px' }}>
-          Invite Friends. Unlock Premium.
+          Invite Friends to Study4XM.
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Invite 3 friends to join Study4XM and unlock the Offline AI-Guided Exam Simulator permanently for free!
+          Share your code with classmates. Premium access is activated only after a verified purchase.
         </p>
       </div>
 
@@ -144,7 +144,7 @@ export default function ReferAndEarnView() {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <span style={{ fontWeight: 600 }}>Your Progress</span>
-              <span style={{ fontWeight: 800, color: 'var(--rose-700)' }}>{successfulReferrals} / 3 Referrals</span>
+              <span style={{ fontWeight: 800, color: 'var(--rose-700)' }}>{successfulReferrals} successful referrals</span>
             </div>
             <div style={{ height: '12px', background: 'var(--rose-100)', borderRadius: '999px', overflow: 'hidden', marginBottom: '24px' }}>
               <div style={{ 
@@ -188,8 +188,8 @@ export default function ReferAndEarnView() {
         </div>
         <div style={{ padding: '16px', background: 'var(--rose-50)', borderRadius: '8px', border: '1px solid var(--page-border)' }}>
           <Crown size={24} color="#fbbf24" style={{ marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>3. Unlock Premium</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>After 3 successful signups, your account is upgraded to Premium!</p>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>3. Track signups</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Referral activity is tracked here. Premium access requires a verified purchase.</p>
         </div>
       </div>
     </div>
